@@ -69,8 +69,8 @@ export async function updateEntryAnalysis(
   id: string,
   userId: string,
   analysis: MoodAnalysis
-): Promise<void> {
-  await db
+): Promise<number> {
+  const result = await db
     .update(entries)
     .set({
       mood: analysis.mood,
@@ -80,10 +80,12 @@ export async function updateEntryAnalysis(
       updatedAt: new Date(),
     })
     .where(and(eq(entries.id, id), eq(entries.userId, userId)));
+  return result.count;
 }
 
-export async function deleteEntry(id: string, userId: string): Promise<void> {
-  await db.delete(entries).where(and(eq(entries.id, id), eq(entries.userId, userId)));
+export async function deleteEntry(id: string, userId: string): Promise<number> {
+  const result = await db.delete(entries).where(and(eq(entries.id, id), eq(entries.userId, userId)));
+  return result.count;
 }
 
 export async function getRecentEntries(userId: string, limit: number = 5): Promise<JournalEntry[]> {
