@@ -45,7 +45,8 @@ export async function saveEntry(
   let embedding: number[] | undefined;
   try {
     embedding = await generateEmbedding(content);
-  } catch {
+  } catch (error) {
+    console.error("Embedding generation failed:", error);
     // Continue without embedding if Ollama is down
   }
 

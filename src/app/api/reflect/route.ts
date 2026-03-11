@@ -29,7 +29,8 @@ export async function POST(req: Request) {
         createdAt: e.createdAt,
         mood: e.mood,
       }));
-  } catch {
+  } catch (error) {
+    console.error("RAG search failed:", error);
     // Continue without RAG if embeddings fail
   }
 
@@ -40,7 +41,8 @@ export async function POST(req: Request) {
     if (trend.recentMoods.length >= 3) {
       moodContext = { avgScore: trend.avgScore, trend: trend.trend };
     }
-  } catch {
+  } catch (error) {
+    console.error("Mood trend fetch failed:", error);
     // Continue without mood context
   }
 
@@ -61,7 +63,7 @@ export async function POST(req: Request) {
       } catch (error) {
         console.error("Reflection stream error:", error);
         controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ error: "Erro na reflexao" })}\n\n`)
+          encoder.encode(`data: ${JSON.stringify({ error: "Reflection error" })}\n\n`)
         );
         controller.close();
       }

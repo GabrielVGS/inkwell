@@ -56,7 +56,8 @@ Onde moodScore vai de -1.0 (muito negativo) a 1.0 (muito positivo) e energyLevel
     });
 
     return { analysis };
-  } catch {
+  } catch (error) {
+    console.error("Mood analysis JSON parsing failed:", error);
     return {
       analysis: {
         mood: "indefinido",

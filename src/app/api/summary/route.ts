@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       } catch (error) {
         console.error("Summary stream error:", error);
         controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ error: "Erro ao gerar resumo" })}\n\n`)
+          encoder.encode(`data: ${JSON.stringify({ error: "Summary generation error" })}\n\n`)
         );
         controller.close();
       }

@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const entries = await getEntriesForMonth(session.user.id, year, month);
 
   if (entries.length === 0) {
-    return Response.json({ error: "Sem entradas neste mes" }, { status: 400 });
+    return Response.json({ error: "No entries for this month" }, { status: 400 });
   }
 
   const encoder = new TextEncoder();
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       } catch (error) {
         console.error("Monthly summary stream error:", error);
         controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ error: "Erro ao gerar resumo mensal" })}\n\n`)
+          encoder.encode(`data: ${JSON.stringify({ error: "Monthly summary generation error" })}\n\n`)
         );
         controller.close();
       }
