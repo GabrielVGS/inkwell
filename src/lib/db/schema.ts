@@ -119,5 +119,8 @@ export const weeklySummaries = pgTable(
       trend: "improving" | "declining" | "stable";
     }>(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  }
+  },
+  (table) => [
+    index("weekly_summaries_user_id_idx").on(table.userId),
+  ]
 );
