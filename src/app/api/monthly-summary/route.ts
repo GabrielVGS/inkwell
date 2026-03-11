@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { getEntriesForMonth } from "@/lib/db/queries";
 import { monthlySummarySchema } from "@/lib/validations";
+import { createSSEResponse } from "@/lib/utils/sse";
 
 export async function POST(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -21,38 +22,14 @@ export async function POST(req: Request) {
     return Response.json({ error: "No entries for this month" }, { status: 400 });
   }
 
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    async start(controller) {
-      try {
-        for await (const chunk of streamMonthlySummary(
-          entries.map((e) => ({
-            content: e.content,
-            createdAt: e.createdAt,
-            mood: e.mood,
-            moodScore: e.moodScore,
-            tags: e.tags,
-          }))
-        )) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`));
-        }
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        controller.close();
-      } catch (error) {
-        console.error("Monthly summary stream error:", error);
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ error: "Monthly summary generation error" })}\n\n`)
-        );
-        controller.close();
-      }
-    },
-  });
-
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-    },
-  });
+  return createSSEResponse(
+    streamMonthlySummary(entries.map((e) => ({
+      content: e.content,
+      createdAt: e.createdAt,
+      mood: e.mood,
+      moodScore: e.moodScore,
+      tags: e.tags,
+    }))),
+    "Monthly summary generation error"
+  );
 }
