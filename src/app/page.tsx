@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -5,14 +6,20 @@ export default function Home() {
   return (
     <div className="min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center px-6">
       <div className="max-w-xl text-center space-y-8 animate-fade-up">
-        {/* Decorative mark */}
-        <div className="mx-auto w-12 h-px bg-foreground/20" />
+        <div className="mx-auto w-64 sm:w-80">
+          <Image
+            src="/logo.png"
+            alt="Inkwell"
+            width={2816}
+            height={1536}
+            className="dark:invert opacity-90"
+            priority
+          />
+        </div>
 
         <div className="space-y-4">
           <h1 className="font-display text-5xl sm:text-6xl tracking-tight leading-[1.1]">
-            Diario
-            <br />
-            <span className="italic font-light">Reflexivo</span>
+            Ink<span className="italic font-light">well</span>
           </h1>
           <div className="mx-auto w-8 h-px bg-foreground/15" />
         </div>
@@ -23,14 +30,14 @@ export default function Home() {
         </p>
 
         <div className="flex gap-3 justify-center pt-2">
-          <Link href="/journal">
+          <Link href="/register">
             <Button size="lg" className="px-8">
               Comecar a escrever
             </Button>
           </Link>
-          <Link href="/insights">
+          <Link href="/login">
             <Button size="lg" variant="outline" className="px-8">
-              Ver insights
+              Entrar
             </Button>
           </Link>
         </div>

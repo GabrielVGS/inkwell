@@ -16,8 +16,12 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Reflexivo",
+  title: "Inkwell",
   description: "Diario pessoal com reflexao por IA",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

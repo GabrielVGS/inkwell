@@ -1,8 +1,8 @@
 import type { JournalEntry, Reflection, WeeklySummary } from "@/types";
 
-const ENTRIES_KEY = "reflective-journal:entries";
-const REFLECTIONS_KEY = "reflective-journal:reflections";
-const SUMMARIES_KEY = "reflective-journal:summaries";
+const ENTRIES_KEY = "inkwell:entries";
+const REFLECTIONS_KEY = "inkwell:reflections";
+const SUMMARIES_KEY = "inkwell:summaries";
 
 function generateId(): string {
   return crypto.randomUUID();

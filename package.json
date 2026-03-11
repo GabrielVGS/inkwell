@@ -1,5 +1,5 @@
 {
-  "name": "reflective-journal",
+  "name": "inkwell",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,9 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:migrate": "npx tsx --env-file=.env.local src/lib/db/migrate.ts",
-    "db:generate": "drizzle-kit generate",
-    "db:studio": "drizzle-kit studio"
+    "db:generate": "node --env-file=.env.local node_modules/.bin/drizzle-kit generate",
+    "db:migrate": "node --env-file=.env.local node_modules/.bin/drizzle-kit migrate",
+    "db:push": "node --env-file=.env.local node_modules/.bin/drizzle-kit push",
+    "db:studio": "node --env-file=.env.local node_modules/.bin/drizzle-kit studio",
+    "db:setup": "npx tsx --env-file=.env.local src/lib/db/setup.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
@@ -18,6 +20,7 @@
     "@langchain/ollama": "^1.2.6",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.99.0",
+    "better-auth": "^1.2.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

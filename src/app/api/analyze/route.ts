@@ -1,6 +1,11 @@
 import { analyzeEntry } from "@/lib/ai/graphs/analysis-graph";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export async function POST(req: Request) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
   const { content } = await req.json();
 
   if (!content || typeof content !== "string") {

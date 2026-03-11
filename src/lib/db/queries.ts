@@ -19,24 +19,26 @@ function rowToEntry(row: typeof entries.$inferSelect): JournalEntry {
   };
 }
 
-export async function getEntries(): Promise<JournalEntry[]> {
+export async function getEntries(userId: string): Promise<JournalEntry[]> {
   const rows = await db
     .select()
     .from(entries)
+    .where(eq(entries.userId, userId))
     .orderBy(desc(entries.createdAt));
   return rows.map(rowToEntry);
 }
 
-export async function getEntry(id: string): Promise<JournalEntry | undefined> {
+export async function getEntry(id: string, userId: string): Promise<JournalEntry | undefined> {
   const rows = await db
     .select()
     .from(entries)
-    .where(eq(entries.id, id))
+    .where(and(eq(entries.id, id), eq(entries.userId, userId)))
     .limit(1);
   return rows[0] ? rowToEntry(rows[0]) : undefined;
 }
 
 export async function saveEntry(
+  userId: string,
   content: string,
   analysis?: MoodAnalysis
 ): Promise<JournalEntry> {
@@ -50,6 +52,7 @@ export async function saveEntry(
   const [row] = await db
     .insert(entries)
     .values({
+      userId,
       content,
       mood: analysis?.mood ?? null,
       moodScore: analysis?.moodScore ?? null,
@@ -64,6 +67,7 @@ export async function saveEntry(
 
 export async function updateEntryAnalysis(
   id: string,
+  userId: string,
   analysis: MoodAnalysis
 ): Promise<void> {
   await db
@@ -75,35 +79,41 @@ export async function updateEntryAnalysis(
       tags: analysis.tags,
       updatedAt: new Date(),
     })
-    .where(eq(entries.id, id));
+    .where(and(eq(entries.id, id), eq(entries.userId, userId)));
 }
 
-export async function deleteEntry(id: string): Promise<void> {
-  await db.delete(entries).where(eq(entries.id, id));
+export async function deleteEntry(id: string, userId: string): Promise<void> {
+  await db.delete(entries).where(and(eq(entries.id, id), eq(entries.userId, userId)));
 }
 
-export async function getRecentEntries(limit: number = 5): Promise<JournalEntry[]> {
+export async function getRecentEntries(userId: string, limit: number = 5): Promise<JournalEntry[]> {
   const rows = await db
     .select()
     .from(entries)
+    .where(eq(entries.userId, userId))
     .orderBy(desc(entries.createdAt))
     .limit(limit);
   return rows.map(rowToEntry);
 }
 
-export async function getEntriesForWeek(weekStart: Date): Promise<JournalEntry[]> {
+export async function getEntriesForWeek(userId: string, weekStart: Date): Promise<JournalEntry[]> {
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekEnd.getDate() + 7);
   const rows = await db
     .select()
     .from(entries)
-    .where(and(gte(entries.createdAt, weekStart), lt(entries.createdAt, weekEnd)))
+    .where(and(
+      eq(entries.userId, userId),
+      gte(entries.createdAt, weekStart),
+      lt(entries.createdAt, weekEnd)
+    ))
     .orderBy(desc(entries.createdAt));
   return rows.map(rowToEntry);
 }
 
 // Semantic search using pgvector
 export async function searchSimilarEntries(
+  userId: string,
   query: string,
   limit: number = 5
 ): Promise<JournalEntry[]> {
@@ -112,6 +122,7 @@ export async function searchSimilarEntries(
   const rows = await db
     .select()
     .from(entries)
+    .where(eq(entries.userId, userId))
     .orderBy(sql`embedding <=> ${JSON.stringify(queryEmbedding)}::vector`)
     .limit(limit);
 
@@ -165,20 +176,23 @@ function rowToSummary(row: typeof weeklySummaries.$inferSelect): WeeklySummary {
   };
 }
 
-export async function getSummaries(): Promise<WeeklySummary[]> {
+export async function getSummaries(userId: string): Promise<WeeklySummary[]> {
   const rows = await db
     .select()
     .from(weeklySummaries)
+    .where(eq(weeklySummaries.userId, userId))
     .orderBy(desc(weeklySummaries.createdAt));
   return rows.map(rowToSummary);
 }
 
 export async function saveSummary(
+  userId: string,
   summary: Omit<WeeklySummary, "id" | "createdAt">
 ): Promise<WeeklySummary> {
   const [row] = await db
     .insert(weeklySummaries)
     .values({
+      userId,
       periodStart: new Date(summary.periodStart),
       periodEnd: new Date(summary.periodEnd),
       content: summary.content,

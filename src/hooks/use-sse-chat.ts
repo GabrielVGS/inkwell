@@ -123,8 +123,8 @@ export function useSSEChat({ api, body, initialMessages, onFinish }: UseSSEChatO
   );
 
   const handleSubmit = useCallback(
-    (e?: React.FormEvent) => {
-      e?.preventDefault();
+    (e?: { preventDefault?: () => void }) => {
+      e?.preventDefault?.();
       if (!input.trim() || isLoading) return;
       const content = input;
       setInput("");
