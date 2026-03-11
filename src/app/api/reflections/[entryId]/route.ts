@@ -1,6 +1,7 @@
 import { getReflections, addReflection, getEntry } from "@/lib/db/queries";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { reflectionCreateSchema } from "@/lib/validations";
 
 export async function GET(
   _req: Request,
@@ -27,12 +28,12 @@ export async function POST(
   const entry = await getEntry(entryId, session.user.id);
   if (!entry) return Response.json({ error: "Not found" }, { status: 404 });
 
-  const { role, content } = await req.json();
-
-  if (!role || !content) {
-    return Response.json({ error: "role and content are required" }, { status: 400 });
+  const parsed = reflectionCreateSchema.safeParse(await req.json());
+  if (!parsed.success) {
+    return Response.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
 
+  const { role, content } = parsed.data;
   const reflection = await addReflection(entryId, role, content);
   return Response.json(reflection, { status: 201 });
 }

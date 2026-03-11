@@ -1,16 +1,18 @@
 import { analyzeEntry } from "@/lib/ai/graphs/analysis-graph";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { analyzeSchema } from "@/lib/validations";
 
 export async function POST(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { content } = await req.json();
-
-  if (!content || typeof content !== "string") {
-    return Response.json({ error: "Content is required" }, { status: 400 });
+  const parsed = analyzeSchema.safeParse(await req.json());
+  if (!parsed.success) {
+    return Response.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
+
+  const { content } = parsed.data;
 
   try {
     const analysis = await analyzeEntry(content);

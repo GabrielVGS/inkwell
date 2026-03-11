@@ -2,18 +2,19 @@ import { streamReflection } from "@/lib/ai/graphs/reflection-graph";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { searchSimilarEntries, getMoodTrend } from "@/lib/db/queries";
+import { reflectSchema } from "@/lib/validations";
 
 export async function POST(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { currentEntry, messages } = await req.json();
-
-  if (!currentEntry) {
-    return Response.json({ error: "currentEntry is required" }, { status: 400 });
+  const parsed = reflectSchema.safeParse(await req.json());
+  if (!parsed.success) {
+    return Response.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
 
-  const conversationHistory = (messages ?? []) as { role: string; content: string }[];
+  const { currentEntry, messages } = parsed.data;
+  const conversationHistory = messages ?? [];
 
   // RAG: find semantically similar past entries
   let similarEntries: { content: string; createdAt: string; mood: string | null }[] = [];

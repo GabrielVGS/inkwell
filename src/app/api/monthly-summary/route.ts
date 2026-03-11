@@ -2,16 +2,18 @@ import { streamMonthlySummary } from "@/lib/ai/graphs/monthly-summary-graph";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { getEntriesForMonth } from "@/lib/db/queries";
+import { monthlySummarySchema } from "@/lib/validations";
 
 export async function POST(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { year, month } = await req.json();
-
-  if (!year || !month) {
-    return Response.json({ error: "year and month are required" }, { status: 400 });
+  const parsed = monthlySummarySchema.safeParse(await req.json());
+  if (!parsed.success) {
+    return Response.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
+
+  const { year, month } = parsed.data;
 
   const entries = await getEntriesForMonth(session.user.id, year, month);
 
