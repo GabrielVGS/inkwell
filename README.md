@@ -68,7 +68,7 @@ Inkwell e um diario reflexivo onde voce escreve livremente sobre seu dia e a IA 
 
 ```bash
 # Clone o repositorio
-git clone <repo-url>
+git clone https://github.com/GabrielVGS/inkwell.git
 cd inkwell
 
 # Setup completo (instala deps, sobe banco, baixa modelos)
