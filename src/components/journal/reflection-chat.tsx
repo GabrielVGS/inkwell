@@ -69,7 +69,7 @@ export function ReflectionChat({ entry }: ReflectionChatProps) {
   if (!loaded || initialMessages === null) {
     return (
       <div className="flex flex-col h-[500px] rounded-lg border border-border/60 items-center justify-center">
-        <div className="flex gap-1">
+        <div className="flex gap-1" role="status" aria-label="Carregando...">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
@@ -146,7 +146,7 @@ function ReflectionChatInner({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-5" ref={scrollRef}>
+      <div className="flex-1 overflow-y-auto px-5" ref={scrollRef} aria-live="polite">
         <div className="py-4 space-y-4">
           {displayMessages.map((message) => (
             <div

@@ -114,6 +114,7 @@ export function MoodChart({ entries }: MoodChartProps) {
         <div className="flex gap-1 rounded-md border border-border/40 p-0.5">
           <button
             onClick={() => setView("daily")}
+            aria-label="Visualizar por dia"
             className={`text-[11px] px-2.5 py-1 rounded transition-colors ${
               view === "daily"
                 ? "bg-foreground/10 text-foreground"
@@ -124,6 +125,7 @@ export function MoodChart({ entries }: MoodChartProps) {
           </button>
           <button
             onClick={() => setView("detailed")}
+            aria-label="Visualizar por entrada"
             className={`text-[11px] px-2.5 py-1 rounded transition-colors ${
               view === "detailed"
                 ? "bg-foreground/10 text-foreground"

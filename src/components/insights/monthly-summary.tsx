@@ -107,6 +107,7 @@ export function MonthlySummary() {
         <div className="flex items-center gap-2">
           <button
             onClick={goToPrevMonth}
+            aria-label="Mes anterior"
             className="text-muted-foreground/60 hover:text-foreground text-sm px-1.5 py-0.5 transition-colors"
           >
             &larr;
@@ -117,6 +118,7 @@ export function MonthlySummary() {
           <button
             onClick={goToNextMonth}
             disabled={isCurrentOrFuture}
+            aria-label="Proximo mes"
             className="text-muted-foreground/60 hover:text-foreground text-sm px-1.5 py-0.5 transition-colors disabled:opacity-30"
           >
             &rarr;
