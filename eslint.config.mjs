@@ -11,10 +11,14 @@ const eslintConfig = defineConfig([
   // Prettier — disable ESLint rules that conflict with Prettier
   prettierConfig,
 
-  // Import ordering & hygiene
+  // Import ordering & hygiene + stricter unused-vars
   {
     plugins: { "import-x": importPlugin },
     rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
       "import-x/order": [
         "warn",
         {

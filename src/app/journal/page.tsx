@@ -14,7 +14,7 @@ export default function JournalPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [_error, setError] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
 
   const fetchEntries = useCallback(async () => {

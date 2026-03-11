@@ -1,11 +1,11 @@
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
-import { StateGraph, Annotation } from "@langchain/langgraph";
+import { Annotation } from "@langchain/langgraph";
 
 import { MONTHLY_SUMMARY_PROMPT } from "../../prompts";
 import { getSummaryModel } from "../llm";
 
 // State
-const MonthlySummaryState = Annotation.Root({
+const _MonthlySummaryState = Annotation.Root({
   entries: Annotation<
     {
       content: string;

@@ -47,7 +47,6 @@ export function MoodChart({ entries }: MoodChartProps) {
     for (const e of filtered) {
       const d = new Date(e.createdAt);
       const sortKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const dateLabel = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 
       if (!byDay.has(sortKey)) {
         byDay.set(sortKey, { scores: [], energies: [], moods: [] });
@@ -80,7 +79,7 @@ export function MoodChart({ entries }: MoodChartProps) {
     return entries
       .filter((e) => e.moodScore !== null)
       .reverse()
-      .map((e, i): DetailPoint => {
+      .map((e): DetailPoint => {
         const d = new Date(e.createdAt);
         const dateStr = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
         const timeStr = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });

@@ -8,7 +8,6 @@ import {
   index,
   vector,
   boolean,
-  integer,
 } from "drizzle-orm/pg-core";
 
 // --- Better Auth tables ---
