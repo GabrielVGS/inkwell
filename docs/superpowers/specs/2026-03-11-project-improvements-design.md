@@ -17,12 +17,12 @@
 
 ### 1.1 Authorization Fixes
 
-**Problem**: `/api/reflections/[entryId]` GET and POST don't verify entry ownership. `/api/entries/[id]` PATCH/DELETE could leak existence of other users' entries.
+**Problem**: `/api/reflections/[entryId]` GET and POST don't verify entry ownership — any authenticated user can access reflections for any entry by guessing the ID. `/api/entries/[id]` PATCH/DELETE silently no-op when the entry doesn't belong to the user (returns `{ ok: true }` regardless).
 
 **Fix**:
 - `GET /api/reflections/[entryId]`: call `getEntry(entryId, session.user.id)`, return 404 if not found, before fetching reflections
 - `POST /api/reflections/[entryId]`: same ownership check before adding reflection
-- `PATCH /api/entries/[id]`: return 404 (not 403) when entry doesn't belong to user to avoid existence leaking
+- `PATCH/DELETE /api/entries/[id]`: check affected row count after the DB operation, return 404 if 0 rows were affected
 
 **Files**: `src/app/api/reflections/[entryId]/route.ts`, `src/app/api/entries/[id]/route.ts`
 
@@ -59,6 +59,11 @@ entryUpdateSchema = z.object({
   content: z.string().min(1).max(10000),
 })
 
+// Mood analysis (used by /api/analyze)
+analyzeSchema = z.object({
+  content: z.string().min(1).max(10000),
+})
+
 // Query params (used manually)
 // search: limit clamped to 1-50, query min 1 char
 // mood-trends: days clamped to 1-90
@@ -66,7 +71,7 @@ entryUpdateSchema = z.object({
 
 Apply validation in each route, return 400 with Zod error messages on failure.
 
-**Files**: `src/lib/validations.ts` (new), all API routes
+**Files**: `src/lib/validations.ts` (new), all API routes (including `/api/analyze`)
 
 ### 1.3 Error Handling & Logging
 
@@ -81,9 +86,13 @@ Apply validation in each route, return 400 with Zod error messages on failure.
   - `reflection-chat.tsx` — reflections load
   - `insights/page.tsx` — entries fetch
   - `journal/page.tsx` — entries fetch
-- Standardize API errors: `{ error: "English message" }` for all routes
+- Standardize API errors: `{ error: "English message" }` for all routes. Specific Portuguese API errors to translate:
+  - `monthly-summary/route.ts`: `"Sem entradas neste mes"` → `"No entries for this month"`
+  - `reflect/route.ts` SSE error: `"Erro na reflexao"` → `"Reflection error"`
+  - `summary/route.ts` SSE error: `"Erro ao gerar resumo"` → `"Summary generation error"`
+  - `monthly-summary/route.ts` SSE error: `"Erro ao gerar resumo mensal"` → `"Monthly summary generation error"`
 
-**Files**: `src/lib/ai/graphs/analysis-graph.ts`, `src/lib/db/queries.ts`, `src/app/api/reflect/route.ts`, client components
+**Files**: `src/lib/ai/graphs/analysis-graph.ts`, `src/lib/db/queries.ts`, `src/app/api/reflect/route.ts`, `src/app/api/summary/route.ts`, `src/app/api/monthly-summary/route.ts`, client components
 
 ---
 
@@ -108,11 +117,11 @@ Encapsulates: TextEncoder, ReadableStream setup, `data: JSON\n\n` formatting, `[
 
 ### 2.2 Clean Up LangGraph Graphs
 
-**Problem**: `reflectionGraph` compiled export is unused. `getReflection` and `streamReflection` duplicate message-building logic.
+**Problem**: `getReflection()` and its dependencies (`reflectionGraph`, `workflow`, `reflect` node, `ReflectionState`) are dead code — only `streamReflection` is called from `/api/reflect`. The message-building logic is duplicated between `getReflection` and `streamReflection`.
 
 **Fix**:
-- Remove unused `reflectionGraph` export and the `workflow`/`reflect` node (only the streaming functions are used)
-- Extract shared `buildReflectionMessages()` helper for message construction used by both `getReflection` and `streamReflection`
+- Remove all dead code: `ReflectionState`, `reflect` node, `workflow`, `reflectionGraph`, and `getReflection()` — only `streamReflection` remains
+- Extract shared `buildReflectionMessages()` helper for message construction (used by `streamReflection`, and available if `getReflection` is re-added later)
 - In `analysis-graph.ts`: add `fallback: boolean` to return type so callers know when analysis defaulted
 
 **Files**: `src/lib/ai/graphs/reflection-graph.ts`, `src/lib/ai/graphs/analysis-graph.ts`
@@ -237,14 +246,18 @@ Create `src/components/ui/error-boundary.tsx` — React class component with:
 
 **Files**: `src/components/ui/error-boundary.tsx` (new), `src/app/journal/page.tsx`, `src/app/insights/page.tsx`
 
-### 4.2 Fix Unhandled Promises
+### 4.2 Fix Unhandled Promises & Response Status Checks
 
-Add `.catch()` with error state to useEffect fetches in:
-- `insights/page.tsx` — show "Erro ao carregar entradas" instead of empty page
-- `mood-trend-card.tsx` — already gracefully hidden when null, just add logging
-- `journal/page.tsx` — show error state on fetch failure
+> Note: This combines promise error handling (`.catch()`) and response status checks (`if (!res.ok)`) into a single pass per file since they affect the same fetch calls.
 
-**Files**: `src/app/insights/page.tsx`, `src/components/insights/mood-trend-card.tsx`, `src/app/journal/page.tsx`
+Add `.catch()` with error state **and** `if (!res.ok)` guards to useEffect/event fetches in:
+- `insights/page.tsx` — entries fetch: show "Erro ao carregar entradas" instead of empty page
+- `mood-trend-card.tsx` — trend fetch: already gracefully hidden when null, just add logging
+- `journal/page.tsx` — entries fetch + entry save: show error state on failure
+- `reflection-chat.tsx` — reflections load: handle failed fetch gracefully
+- `entry-editor.tsx` — analyze call: show fallback instead of crash
+
+**Files**: `src/app/insights/page.tsx`, `src/components/insights/mood-trend-card.tsx`, `src/app/journal/page.tsx`, `src/components/journal/reflection-chat.tsx`, `src/components/journal/entry-editor.tsx`
 
 ### 4.3 Basic Accessibility
 
@@ -253,15 +266,6 @@ Add `.catch()` with error state to useEffect fetches in:
 - `aria-live="polite"` on: summary streaming content, reflection chat message area
 
 **Files**: `src/components/insights/monthly-summary.tsx`, `src/components/insights/mood-chart.tsx`, `src/components/journal/reflection-chat.tsx`
-
-### 4.4 Response Status Checks
-
-Add `if (!res.ok)` before `.json()` in client fetches:
-- `reflection-chat.tsx` — reflections load
-- `entry-editor.tsx` — analyze call (show fallback instead of crash)
-- `journal/page.tsx` — entry save (show error toast/message)
-
-**Files**: `src/components/journal/reflection-chat.tsx`, `src/components/journal/entry-editor.tsx`, `src/app/journal/page.tsx`
 
 ---
 
@@ -274,7 +278,7 @@ Phase 2.6 (constants) → 2.5 (dead code) → 2.1 (SSE util) → 2.2 (graphs) �
     ↓
 Phase 3.1 (test setup) → 3.2 (unit tests) → 3.3 (integration tests)
     ↓
-Phase 4.1 (error boundaries) → 4.2 (promises) → 4.3 (a11y) → 4.4 (status checks)
+Phase 4.1 (error boundaries) → 4.2 (promises + status checks) → 4.3 (a11y)
 ```
 
 ## Files Summary
@@ -290,7 +294,7 @@ Phase 4.1 (error boundaries) → 4.2 (promises) → 4.3 (a11y) → 4.4 (status c
 - `src/lib/utils/__tests__/sse.test.ts`
 
 **Modified files (~18)**:
-- All API routes (7): entries, entries/[id], reflections/[entryId], reflect, summary, monthly-summary, mood-trends, entries/search, writing-suggestions
+- All API routes (10): entries, entries/[id], reflections/[entryId], reflect, analyze, summary, monthly-summary, mood-trends, entries/search, writing-suggestions
 - Components (6): reflection-chat, entry-editor, mood-chart, monthly-summary, mood-trend-card, entry-list
 - Pages (2): journal/page, insights/page
 - Lib (3): queries.ts, prompts.ts (import constants), reflection-graph.ts, analysis-graph.ts
