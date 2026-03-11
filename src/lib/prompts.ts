@@ -23,7 +23,7 @@ Você NÃO é terapeuta. Você é um companheiro de jornada reflexiva.`;
 
 export function buildReflectionPrompt(
   currentEntry: string,
-  previousEntries?: { content: string; createdAt: string; mood: string | null }[]
+  previousEntries?: { content: string; createdAt: string; mood: string | null }[],
 ): string {
   let context = "";
 
@@ -39,9 +39,10 @@ export function buildReflectionPrompt(
   return `Entrada atual do diário do usuário:\n\n"${currentEntry}"${context}`;
 }
 
-export function buildAdaptiveSystemPrompt(
-  moodContext?: { avgScore: number; trend: "improving" | "declining" | "stable" }
-): string {
+export function buildAdaptiveSystemPrompt(moodContext?: {
+  avgScore: number;
+  trend: "improving" | "declining" | "stable";
+}): string {
   let toneGuidance = "";
 
   if (moodContext) {

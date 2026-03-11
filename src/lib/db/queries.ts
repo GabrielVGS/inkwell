@@ -1,9 +1,18 @@
+import { eq, desc, gte, lt, and, sql } from "drizzle-orm";
+
 import { db } from "./index";
 import { entries, reflections, weeklySummaries } from "./schema";
-import { eq, desc, gte, lt, and, sql } from "drizzle-orm";
-import { generateEmbedding } from "@/lib/ai/embeddings";
+
 import type { JournalEntry, Reflection, WeeklySummary, MoodAnalysis } from "@/types";
-import { MOOD_TREND_DAYS, TREND_THRESHOLD, WRITING_CONTEXT_LIMIT, ENTRIES_PAGE_SIZE, INSIGHTS_ENTRIES_CAP } from "@/lib/constants";
+
+import { generateEmbedding } from "@/lib/ai/embeddings";
+import {
+  MOOD_TREND_DAYS,
+  TREND_THRESHOLD,
+  WRITING_CONTEXT_LIMIT,
+  ENTRIES_PAGE_SIZE,
+  INSIGHTS_ENTRIES_CAP,
+} from "@/lib/constants";
 
 // --- Entries ---
 
@@ -22,7 +31,7 @@ function rowToEntry(row: typeof entries.$inferSelect): JournalEntry {
 
 export async function getEntries(
   userId: string,
-  options?: { limit?: number; cursor?: string; all?: boolean }
+  options?: { limit?: number; cursor?: string; all?: boolean },
 ): Promise<{ entries: JournalEntry[]; nextCursor: string | null }> {
   const limit = options?.all ? INSIGHTS_ENTRIES_CAP : (options?.limit ?? ENTRIES_PAGE_SIZE);
   const conditions = [eq(entries.userId, userId)];
@@ -57,7 +66,7 @@ export async function getEntry(id: string, userId: string): Promise<JournalEntry
 export async function saveEntry(
   userId: string,
   content: string,
-  analysis?: MoodAnalysis
+  analysis?: MoodAnalysis,
 ): Promise<JournalEntry> {
   let embedding: number[] | undefined;
   try {
@@ -86,7 +95,7 @@ export async function saveEntry(
 export async function updateEntryAnalysis(
   id: string,
   userId: string,
-  analysis: MoodAnalysis
+  analysis: MoodAnalysis,
 ): Promise<number> {
   const result = await db
     .update(entries)
@@ -102,7 +111,9 @@ export async function updateEntryAnalysis(
 }
 
 export async function deleteEntry(id: string, userId: string): Promise<number> {
-  const result = await db.delete(entries).where(and(eq(entries.id, id), eq(entries.userId, userId)));
+  const result = await db
+    .delete(entries)
+    .where(and(eq(entries.id, id), eq(entries.userId, userId)));
   return result.count;
 }
 
@@ -122,11 +133,13 @@ export async function getEntriesForWeek(userId: string, weekStart: Date): Promis
   const rows = await db
     .select()
     .from(entries)
-    .where(and(
-      eq(entries.userId, userId),
-      gte(entries.createdAt, weekStart),
-      lt(entries.createdAt, weekEnd)
-    ))
+    .where(
+      and(
+        eq(entries.userId, userId),
+        gte(entries.createdAt, weekStart),
+        lt(entries.createdAt, weekEnd),
+      ),
+    )
     .orderBy(desc(entries.createdAt));
   return rows.map(rowToEntry);
 }
@@ -135,7 +148,7 @@ export async function getEntriesForWeek(userId: string, weekStart: Date): Promis
 export async function searchSimilarEntries(
   userId: string,
   query: string,
-  limit: number = 5
+  limit: number = 5,
 ): Promise<JournalEntry[]> {
   const queryEmbedding = await generateEmbedding(query);
 
@@ -173,20 +186,18 @@ export async function getReflections(entryId: string): Promise<Reflection[]> {
 export async function addReflection(
   entryId: string,
   role: "user" | "assistant",
-  content: string
+  content: string,
 ): Promise<Reflection> {
-  const [row] = await db
-    .insert(reflections)
-    .values({ entryId, role, content })
-    .returning();
+  const [row] = await db.insert(reflections).values({ entryId, role, content }).returning();
   return rowToReflection(row);
 }
 
 // --- Mood trends ---
 
-export function calculateTrend(
-  scores: number[]
-): { avgScore: number; trend: "improving" | "declining" | "stable" } {
+export function calculateTrend(scores: number[]): {
+  avgScore: number;
+  trend: "improving" | "declining" | "stable";
+} {
   if (scores.length === 0) {
     return { avgScore: 0, trend: "stable" };
   }
@@ -205,15 +216,20 @@ export function calculateTrend(
   const avgSecond = secondHalf.reduce((s, v) => s + v, 0) / secondHalf.length;
 
   const diff = avgSecond - avgFirst;
-  const trend = diff > TREND_THRESHOLD ? "improving" : diff < -TREND_THRESHOLD ? "declining" : "stable";
+  const trend =
+    diff > TREND_THRESHOLD ? "improving" : diff < -TREND_THRESHOLD ? "declining" : "stable";
 
   return { avgScore, trend };
 }
 
 export async function getMoodTrend(
   userId: string,
-  days: number = MOOD_TREND_DAYS
-): Promise<{ avgScore: number; trend: "improving" | "declining" | "stable"; recentMoods: { mood: string; moodScore: number; date: string }[] }> {
+  days: number = MOOD_TREND_DAYS,
+): Promise<{
+  avgScore: number;
+  trend: "improving" | "declining" | "stable";
+  recentMoods: { mood: string; moodScore: number; date: string }[];
+}> {
   const since = new Date();
   since.setDate(since.getDate() - days);
 
@@ -247,13 +263,19 @@ export async function getMoodTrend(
 
 // --- Entries for month ---
 
-export async function getEntriesForMonth(userId: string, year: number, month: number): Promise<JournalEntry[]> {
+export async function getEntriesForMonth(
+  userId: string,
+  year: number,
+  month: number,
+): Promise<JournalEntry[]> {
   const start = new Date(year, month - 1, 1);
   const end = new Date(year, month, 1);
   const rows = await db
     .select()
     .from(entries)
-    .where(and(eq(entries.userId, userId), gte(entries.createdAt, start), lt(entries.createdAt, end)))
+    .where(
+      and(eq(entries.userId, userId), gte(entries.createdAt, start), lt(entries.createdAt, end)),
+    )
     .orderBy(entries.createdAt);
   return rows.map(rowToEntry);
 }
@@ -274,9 +296,10 @@ export async function getWritingContext(userId: string): Promise<{
     .limit(WRITING_CONTEXT_LIMIT);
 
   const totalEntries = allEntries.length;
-  const daysSinceLastEntry = allEntries.length > 0
-    ? Math.floor((Date.now() - allEntries[0].createdAt.getTime()) / (1000 * 60 * 60 * 24))
-    : 999;
+  const daysSinceLastEntry =
+    allEntries.length > 0
+      ? Math.floor((Date.now() - allEntries[0].createdAt.getTime()) / (1000 * 60 * 60 * 24))
+      : 999;
 
   // Aggregate tags from last 30 entries
   const tagCounts = new Map<string, number>();
@@ -328,7 +351,7 @@ export async function getSummaries(userId: string): Promise<WeeklySummary[]> {
 
 export async function saveSummary(
   userId: string,
-  summary: Omit<WeeklySummary, "id" | "createdAt">
+  summary: Omit<WeeklySummary, "id" | "createdAt">,
 ): Promise<WeeklySummary> {
   const [row] = await db
     .insert(weeklySummaries)

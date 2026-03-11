@@ -105,19 +105,14 @@ export async function deleteEntry(id: string, userId: string): Promise<number> {
 In `src/app/api/entries/[id]/route.ts`, update the PATCH handler (line 20):
 
 ```typescript
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session)
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
   const { analysis } = await req.json();
   const count = await updateEntryAnalysis(id, session.user.id, analysis);
-  if (count === 0)
-    return Response.json({ error: "Not found" }, { status: 404 });
+  if (count === 0) return Response.json({ error: "Not found" }, { status: 404 });
   return Response.json({ ok: true });
 }
 ```
@@ -127,18 +122,13 @@ export async function PATCH(
 Update the DELETE handler (line 33):
 
 ```typescript
-export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session)
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
   const count = await deleteEntry(id, session.user.id);
-  if (count === 0)
-    return Response.json({ error: "Not found" }, { status: 404 });
+  if (count === 0) return Response.json({ error: "Not found" }, { status: 404 });
   return Response.json({ ok: true });
 }
 ```
@@ -249,22 +239,14 @@ import { entryCreateSchema } from "@/lib/validations";
 
 export async function POST(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session)
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const parsed = entryCreateSchema.safeParse(await req.json());
   if (!parsed.success) {
-    return Response.json(
-      { error: parsed.error.issues[0].message },
-      { status: 400 },
-    );
+    return Response.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
 
-  const entry = await saveEntry(
-    session.user.id,
-    parsed.data.content,
-    parsed.data.analysis,
-  );
+  const entry = await saveEntry(session.user.id, parsed.data.content, parsed.data.analysis);
   return Response.json(entry, { status: 201 });
 }
 ```
@@ -285,16 +267,9 @@ In the PATCH handler, replace `const { analysis } = await req.json();` with:
 ```typescript
 const parsed = entryUpdateSchema.safeParse(await req.json());
 if (!parsed.success) {
-  return Response.json(
-    { error: parsed.error.issues[0].message },
-    { status: 400 },
-  );
+  return Response.json({ error: parsed.error.issues[0].message }, { status: 400 });
 }
-const count = await updateEntryAnalysis(
-  id,
-  session.user.id,
-  parsed.data.analysis,
-);
+const count = await updateEntryAnalysis(id, session.user.id, parsed.data.analysis);
 ```
 
 - [ ] **Step 3: Apply validation to POST /api/analyze**
@@ -309,15 +284,11 @@ import { analyzeSchema } from "@/lib/validations";
 
 export async function POST(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session)
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const parsed = analyzeSchema.safeParse(await req.json());
   if (!parsed.success) {
-    return Response.json(
-      { error: parsed.error.issues[0].message },
-      { status: 400 },
-    );
+    return Response.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
 
   try {
@@ -346,10 +317,7 @@ Replace lines 10-16 with:
 ```typescript
 const parsed = reflectSchema.safeParse(await req.json());
 if (!parsed.success) {
-  return Response.json(
-    { error: parsed.error.issues[0].message },
-    { status: 400 },
-  );
+  return Response.json({ error: parsed.error.issues[0].message }, { status: 400 });
 }
 
 const { currentEntry, messages } = parsed.data;
@@ -369,17 +337,10 @@ In the POST handler, replace `const { role, content } = await req.json();` and t
 ```typescript
 const parsed = reflectionCreateSchema.safeParse(await req.json());
 if (!parsed.success) {
-  return Response.json(
-    { error: parsed.error.issues[0].message },
-    { status: 400 },
-  );
+  return Response.json({ error: parsed.error.issues[0].message }, { status: 400 });
 }
 
-const reflection = await addReflection(
-  entryId,
-  parsed.data.role,
-  parsed.data.content,
-);
+const reflection = await addReflection(entryId, parsed.data.role, parsed.data.content);
 ```
 
 - [ ] **Step 6: Apply validation to POST /api/monthly-summary**
@@ -395,10 +356,7 @@ Replace `const { year, month } = await req.json();` and the manual check (lines 
 ```typescript
 const parsed = monthlySummarySchema.safeParse(await req.json());
 if (!parsed.success) {
-  return Response.json(
-    { error: parsed.error.issues[0].message },
-    { status: 400 },
-  );
+  return Response.json({ error: parsed.error.issues[0].message }, { status: 400 });
 }
 const { year, month } = parsed.data;
 ```
@@ -408,23 +366,16 @@ const { year, month } = parsed.data;
 In `src/app/api/mood-trends/route.ts`, clamp the `days` param:
 
 ```typescript
-const days = Math.min(
-  90,
-  Math.max(1, parseInt(searchParams.get("days") ?? "14", 10)),
-);
+const days = Math.min(90, Math.max(1, parseInt(searchParams.get("days") ?? "14", 10)));
 ```
 
 In `src/app/api/entries/search/route.ts`, validate query and clamp limit:
 
 ```typescript
 const query = searchParams.get("query");
-if (!query)
-  return Response.json({ error: "query is required" }, { status: 400 });
+if (!query) return Response.json({ error: "query is required" }, { status: 400 });
 
-const limit = Math.min(
-  50,
-  Math.max(1, parseInt(searchParams.get("limit") ?? "5", 10)),
-);
+const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") ?? "5", 10)));
 ```
 
 - [ ] **Step 8: Verify build passes**
@@ -637,19 +588,13 @@ export function createSSEResponse(
     async start(controller) {
       try {
         for await (const chunk of generator) {
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`),
-          );
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`));
         }
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();
       } catch (error) {
         console.error(`SSE stream error (${errorMessage}):`, error);
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ error: errorMessage })}\n\n`,
-          ),
-        );
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorMessage })}\n\n`));
         controller.close();
       }
     },
@@ -677,12 +622,7 @@ Replace the entire `const encoder = ...` through `return new Response(stream, ..
 
 ```typescript
 return createSSEResponse(
-  streamReflection(
-    currentEntry,
-    similarEntries,
-    conversationHistory,
-    moodContext,
-  ),
+  streamReflection(currentEntry, similarEntries, conversationHistory, moodContext),
   "Reflection error",
 );
 ```
@@ -692,10 +632,7 @@ return createSSEResponse(
 In `src/app/api/summary/route.ts`, add import and replace the stream block (lines 15-41) with:
 
 ```typescript
-return createSSEResponse(
-  streamWeeklySummary(entries),
-  "Summary generation error",
-);
+return createSSEResponse(streamWeeklySummary(entries), "Summary generation error");
 ```
 
 - [ ] **Step 4: Refactor /api/monthly-summary to use utility**
@@ -741,16 +678,9 @@ git commit -m "refactor: extract SSE streaming into reusable utility"
 Rewrite `src/lib/ai/graphs/reflection-graph.ts` to keep only `streamReflection` with a shared `buildReflectionMessages` helper:
 
 ```typescript
-import {
-  SystemMessage,
-  HumanMessage,
-  AIMessage,
-} from "@langchain/core/messages";
+import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { getReflectionModel } from "../llm";
-import {
-  buildAdaptiveSystemPrompt,
-  buildReflectionPrompt,
-} from "../../prompts";
+import { buildAdaptiveSystemPrompt, buildReflectionPrompt } from "../../prompts";
 
 type MoodContext = {
   avgScore: number;
@@ -772,9 +702,7 @@ function buildReflectionMessages(
   const systemMessage = new SystemMessage(systemPrompt);
 
   const messages = conversationHistory.map((msg) =>
-    msg.role === "user"
-      ? new HumanMessage(msg.content)
-      : new AIMessage(msg.content),
+    msg.role === "user" ? new HumanMessage(msg.content) : new AIMessage(msg.content),
   );
 
   if (messages.length === 0) {
@@ -956,9 +884,7 @@ export async function getEntries(
   userId: string,
   options?: { limit?: number; cursor?: string; all?: boolean },
 ): Promise<{ entries: JournalEntry[]; nextCursor: string | null }> {
-  const limit = options?.all
-    ? INSIGHTS_ENTRIES_CAP
-    : (options?.limit ?? ENTRIES_PAGE_SIZE);
+  const limit = options?.all ? INSIGHTS_ENTRIES_CAP : (options?.limit ?? ENTRIES_PAGE_SIZE);
 
   let query = db
     .select()
@@ -993,8 +919,7 @@ In `src/app/api/entries/route.ts`, update the GET handler:
 ```typescript
 export async function GET(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session)
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const all = searchParams.get("all") === "true";
@@ -1354,11 +1279,7 @@ export function calculateTrend(scores: number[]): {
 
   const diff = avgSecond - avgFirst;
   const trend =
-    diff > TREND_THRESHOLD
-      ? "improving"
-      : diff < -TREND_THRESHOLD
-        ? "declining"
-        : "stable";
+    diff > TREND_THRESHOLD ? "improving" : diff < -TREND_THRESHOLD ? "declining" : "stable";
 
   return { avgScore, trend };
 }
@@ -1564,10 +1485,7 @@ describe("GET /api/reflections/[entryId]", () => {
 
   it("returns 401 without session", async () => {
     vi.mocked(auth.api.getSession).mockResolvedValue(null as any);
-    const res = await GET(
-      new Request("http://localhost"),
-      makeParams("e1") as any,
-    );
+    const res = await GET(new Request("http://localhost"), makeParams("e1") as any);
     expect(res.status).toBe(401);
   });
 
@@ -1576,10 +1494,7 @@ describe("GET /api/reflections/[entryId]", () => {
       user: { id: "u1" },
     } as any);
     vi.mocked(getEntry).mockResolvedValue(undefined);
-    const res = await GET(
-      new Request("http://localhost"),
-      makeParams("e1") as any,
-    );
+    const res = await GET(new Request("http://localhost"), makeParams("e1") as any);
     expect(res.status).toBe(404);
   });
 
@@ -1588,10 +1503,7 @@ describe("GET /api/reflections/[entryId]", () => {
       user: { id: "u1" },
     } as any);
     vi.mocked(getEntry).mockResolvedValue({ id: "e1" } as any);
-    const res = await GET(
-      new Request("http://localhost"),
-      makeParams("e1") as any,
-    );
+    const res = await GET(new Request("http://localhost"), makeParams("e1") as any);
     expect(res.status).toBe(200);
   });
 });

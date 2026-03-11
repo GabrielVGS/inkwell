@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+
 import { db } from "@/lib/db";
 
 export const auth = betterAuth({
@@ -14,8 +15,5 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // update session every 24h
   },
-  trustedOrigins: [
-    process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-    "http://localhost:3001",
-  ],
+  trustedOrigins: [process.env.BETTER_AUTH_URL ?? "http://localhost:3000", "http://localhost:3001"],
 });

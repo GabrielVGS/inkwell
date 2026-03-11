@@ -20,6 +20,7 @@
 **Problem**: `/api/reflections/[entryId]` GET and POST don't verify entry ownership — any authenticated user can access reflections for any entry by guessing the ID. `/api/entries/[id]` PATCH/DELETE silently no-op when the entry doesn't belong to the user (returns `{ ok: true }` regardless).
 
 **Fix**:
+
 - `GET /api/reflections/[entryId]`: call `getEntry(entryId, session.user.id)`, return 404 if not found, before fetching reflections
 - `POST /api/reflections/[entryId]`: same ownership check before adding reflection
 - `PATCH/DELETE /api/entries/[id]`: check affected row count after the DB operation, return 404 if 0 rows were affected
@@ -37,32 +38,36 @@
 entryCreateSchema = z.object({
   content: z.string().min(1).max(10000),
   analysis: moodAnalysisSchema.optional(),
-})
+});
 
 // Reflection chat
 reflectSchema = z.object({
   currentEntry: z.string().min(1),
-  messages: z.array(z.object({
-    role: z.enum(["user", "assistant"]),
-    content: z.string(),
-  })).optional(),
-})
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string(),
+      }),
+    )
+    .optional(),
+});
 
 // Monthly summary
 monthlySummarySchema = z.object({
   year: z.number().int().min(2020).max(2100),
   month: z.number().int().min(1).max(12),
-})
+});
 
 // Entry update
 entryUpdateSchema = z.object({
   content: z.string().min(1).max(10000),
-})
+});
 
 // Mood analysis (used by /api/analyze)
 analyzeSchema = z.object({
   content: z.string().min(1).max(10000),
-})
+});
 
 // Query params (used manually)
 // search: limit clamped to 1-50, query min 1 char
@@ -78,6 +83,7 @@ Apply validation in each route, return 400 with Zod error messages on failure.
 **Problem**: Empty `catch {}` blocks throughout. Client-side fetches don't check `res.ok`. AI failures are invisible.
 
 **Fix**:
+
 - Replace all empty `catch {}` with `catch (error) { console.error("context:", error) }` in:
   - `analysis-graph.ts` — JSON parsing fallback
   - `queries.ts` — embedding generation
@@ -105,10 +111,7 @@ Apply validation in each route, return 400 with Zod error messages on failure.
 **Fix**: Create `src/lib/utils/sse.ts`:
 
 ```typescript
-export function createSSEStream(
-  generator: AsyncGenerator<string>,
-  errorMessage: string
-): Response
+export function createSSEStream(generator: AsyncGenerator<string>, errorMessage: string): Response;
 ```
 
 Encapsulates: TextEncoder, ReadableStream setup, `data: JSON\n\n` formatting, `[DONE]` signal, error handling. Replace all 3 routes with one-liner calls.
@@ -120,6 +123,7 @@ Encapsulates: TextEncoder, ReadableStream setup, `data: JSON\n\n` formatting, `[
 **Problem**: `getReflection()` and its dependencies (`reflectionGraph`, `workflow`, `reflect` node, `ReflectionState`) are dead code — only `streamReflection` is called from `/api/reflect`. The message-building logic is duplicated between `getReflection` and `streamReflection`.
 
 **Fix**:
+
 - Remove all dead code: `ReflectionState`, `reflect` node, `workflow`, `reflectionGraph`, and `getReflection()` — only `streamReflection` remains
 - Extract shared `buildReflectionMessages()` helper for message construction (used by `streamReflection`, and available if `getReflection` is re-added later)
 - In `analysis-graph.ts`: add `fallback: boolean` to return type so callers know when analysis defaulted
@@ -131,6 +135,7 @@ Encapsulates: TextEncoder, ReadableStream setup, `data: JSON\n\n` formatting, `[
 **Problem**: `GET /api/entries` returns all entries. EntryList loads everything.
 
 **Fix**:
+
 - Add cursor-based pagination to `GET /api/entries`: `?limit=20&cursor=<lastId>`
 - Return `{ entries: JournalEntry[], nextCursor: string | null }`
 - Add `getEntries()` overload in queries.ts with limit/cursor params
@@ -145,6 +150,7 @@ Encapsulates: TextEncoder, ReadableStream setup, `data: JSON\n\n` formatting, `[
 **Problem**: `getWritingContext()` fetches ALL user entries. `weeklySummaries` has no userId index.
 
 **Fix**:
+
 - Add `.limit(100)` to `getWritingContext()` query
 - Add index on `weeklySummaries.userId` in schema (generate migration)
 
@@ -194,6 +200,7 @@ Replace hardcoded values across all files that reference these.
 ### 3.2 Unit Tests (~15 tests)
 
 **`src/lib/__tests__/mood-trend.test.ts`** — test trend calculation logic:
+
 - Returns "stable" for empty entries
 - Returns "stable" for single entry
 - Returns "improving" when second half scores > first half + threshold
@@ -203,6 +210,7 @@ Replace hardcoded values across all files that reference these.
 - Handles all-same-score entries
 
 **`src/lib/__tests__/prompts.test.ts`**:
+
 - `buildAdaptiveSystemPrompt()` returns base prompt with no context
 - Appends declining tone for low avgScore
 - Appends positive tone for high avgScore + improving trend
@@ -211,6 +219,7 @@ Replace hardcoded values across all files that reference these.
 - Handles empty previousEntries array
 
 **`src/lib/utils/__tests__/sse.test.ts`**:
+
 - Produces valid SSE data format
 - Sends [DONE] at end
 - Handles generator errors gracefully
@@ -218,17 +227,20 @@ Replace hardcoded values across all files that reference these.
 ### 3.3 Integration Tests (~10 tests)
 
 **`src/app/api/__tests__/entries.test.ts`**:
+
 - Returns 401 without session
 - Returns 400 with empty content
 - Returns 400 with content exceeding max length
 - Creates entry successfully with valid input
 
 **`src/app/api/__tests__/reflections.test.ts`**:
+
 - Returns 401 without session
 - Returns 404 when entry doesn't belong to user
 - Returns reflections for owned entry
 
 **`src/app/api/__tests__/monthly-summary.test.ts`**:
+
 - Returns 400 with invalid month (0, 13)
 - Returns 400 with missing year/month
 - Returns 400 with non-numeric values
@@ -240,6 +252,7 @@ Replace hardcoded values across all files that reference these.
 ### 4.1 Error Boundaries
 
 Create `src/components/ui/error-boundary.tsx` — React class component with:
+
 - Fallback UI: "Algo deu errado" + retry button
 - `onReset` callback to clear error state
 - Wrap `ReflectionChat`, `MoodChart`, `EntryEditor`
@@ -251,6 +264,7 @@ Create `src/components/ui/error-boundary.tsx` — React class component with:
 > Note: This combines promise error handling (`.catch()`) and response status checks (`if (!res.ok)`) into a single pass per file since they affect the same fetch calls.
 
 Add `.catch()` with error state **and** `if (!res.ok)` guards to useEffect/event fetches in:
+
 - `insights/page.tsx` — entries fetch: show "Erro ao carregar entradas" instead of empty page
 - `mood-trend-card.tsx` — trend fetch: already gracefully hidden when null, just add logging
 - `journal/page.tsx` — entries fetch + entry save: show error state on failure
@@ -284,6 +298,7 @@ Phase 4.1 (error boundaries) → 4.2 (promises + status checks) → 4.3 (a11y)
 ## Files Summary
 
 **New files (7)**:
+
 - `src/lib/validations.ts`
 - `src/lib/constants.ts`
 - `src/lib/utils/sse.ts`
@@ -294,10 +309,12 @@ Phase 4.1 (error boundaries) → 4.2 (promises + status checks) → 4.3 (a11y)
 - `src/lib/utils/__tests__/sse.test.ts`
 
 **Modified files (~22)**:
+
 - All API routes (10): entries, entries/[id], reflections/[entryId], reflect, analyze, summary, monthly-summary, mood-trends, entries/search, writing-suggestions
 - Components (6): reflection-chat, entry-editor, mood-chart, monthly-summary, mood-trend-card, entry-list
 - Pages (2): journal/page, insights/page
 - Lib (4): queries.ts, prompts.ts, reflection-graph.ts, analysis-graph.ts
 
 **Deleted files (1)**:
+
 - `src/lib/store.ts`

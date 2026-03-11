@@ -1,11 +1,14 @@
-import { StateGraph, Annotation } from "@langchain/langgraph";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
-import { getSummaryModel } from "../llm";
+import { StateGraph, Annotation } from "@langchain/langgraph";
+
 import { WEEKLY_SUMMARY_PROMPT } from "../../prompts";
+import { getSummaryModel } from "../llm";
 
 // State
 const SummaryState = Annotation.Root({
-  entries: Annotation<{ content: string; createdAt: string; mood: string | null; moodScore: number | null }[]>,
+  entries: Annotation<
+    { content: string; createdAt: string; mood: string | null; moodScore: number | null }[]
+  >,
   summary: Annotation<string>,
 });
 
@@ -23,7 +26,7 @@ async function generateSummary(state: typeof SummaryState.State) {
   const response = await model.invoke([
     new SystemMessage(WEEKLY_SUMMARY_PROMPT),
     new HumanMessage(
-      `Aqui estao as ${state.entries.length} entradas do diario desta semana:\n\n${entriesText}`
+      `Aqui estao as ${state.entries.length} entradas do diario desta semana:\n\n${entriesText}`,
     ),
   ]);
 
@@ -41,7 +44,7 @@ export const summaryGraph = workflow.compile();
 
 // Helper
 export async function generateWeeklySummary(
-  entries: { content: string; createdAt: string; mood: string | null; moodScore: number | null }[]
+  entries: { content: string; createdAt: string; mood: string | null; moodScore: number | null }[],
 ): Promise<string> {
   const result = await summaryGraph.invoke({ entries, summary: "" });
   return result.summary;
@@ -49,7 +52,7 @@ export async function generateWeeklySummary(
 
 // Streaming version
 export async function* streamWeeklySummary(
-  entries: { content: string; createdAt: string; mood: string | null; moodScore: number | null }[]
+  entries: { content: string; createdAt: string; mood: string | null; moodScore: number | null }[],
 ) {
   const model = getSummaryModel();
 
@@ -63,7 +66,7 @@ export async function* streamWeeklySummary(
   const stream = await model.stream([
     new SystemMessage(WEEKLY_SUMMARY_PROMPT),
     new HumanMessage(
-      `Aqui estao as ${entries.length} entradas do diario desta semana:\n\n${entriesText}`
+      `Aqui estao as ${entries.length} entradas do diario desta semana:\n\n${entriesText}`,
     ),
   ]);
 

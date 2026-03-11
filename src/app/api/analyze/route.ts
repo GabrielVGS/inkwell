@@ -1,6 +1,7 @@
+import { headers } from "next/headers";
+
 import { analyzeEntry } from "@/lib/ai/graphs/analysis-graph";
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { analyzeSchema } from "@/lib/validations";
 
 export async function POST(req: Request) {
@@ -21,7 +22,7 @@ export async function POST(req: Request) {
     console.error("Analysis error:", error);
     return Response.json(
       { mood: "indefinido", moodScore: 0, energyLevel: 0.5, tags: [] },
-      { status: 200 }
+      { status: 200 },
     );
   }
 }

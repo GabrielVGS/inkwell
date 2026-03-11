@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import Markdown from "react-markdown";
+
+import { Button } from "@/components/ui/button";
 
 export function MonthlySummary() {
   const now = new Date();
@@ -13,8 +14,18 @@ export function MonthlySummary() {
   const [error, setError] = useState("");
 
   const monthNames = [
-    "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+    "Janeiro",
+    "Fevereiro",
+    "Marco",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
   ];
 
   const goToPrevMonth = () => {
@@ -143,7 +154,8 @@ export function MonthlySummary() {
           </div>
         ) : (
           <p className="text-sm italic text-muted-foreground/50 py-4 text-center">
-            Selecione um mes e clique em &quot;Gerar&quot; para uma analise mensal das suas entradas.
+            Selecione um mes e clique em &quot;Gerar&quot; para uma analise mensal das suas
+            entradas.
           </p>
         )}
       </div>

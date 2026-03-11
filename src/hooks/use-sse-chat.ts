@@ -36,10 +36,7 @@ export function useSSEChat({ api, body, initialMessages, onFinish }: UseSSEChatO
       // Create assistant placeholder
       const assistantId = crypto.randomUUID();
       let assistantContent = "";
-      setMessages((prev) => [
-        ...prev,
-        { id: assistantId, role: "assistant", content: "" },
-      ]);
+      setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "" }]);
 
       try {
         abortRef.current = new AbortController();
@@ -83,11 +80,7 @@ export function useSSEChat({ api, body, initialMessages, onFinish }: UseSSEChatO
               if (parsed.content) {
                 assistantContent += parsed.content;
                 setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === assistantId
-                      ? { ...m, content: assistantContent }
-                      : m
-                  )
+                  prev.map((m) => (m.id === assistantId ? { ...m, content: assistantContent } : m)),
                 );
               }
             } catch {
@@ -110,16 +103,19 @@ export function useSSEChat({ api, body, initialMessages, onFinish }: UseSSEChatO
           setMessages((prev) =>
             prev.map((m) =>
               m.id === assistantId
-                ? { ...m, content: "Erro ao conectar com o modelo. Verifique se o Ollama esta rodando." }
-                : m
-            )
+                ? {
+                    ...m,
+                    content: "Erro ao conectar com o modelo. Verifique se o Ollama esta rodando.",
+                  }
+                : m,
+            ),
           );
         }
       } finally {
         setIsLoading(false);
       }
     },
-    [api, body, messages, onFinish]
+    [api, body, messages, onFinish],
   );
 
   const handleSubmit = useCallback(
@@ -130,7 +126,7 @@ export function useSSEChat({ api, body, initialMessages, onFinish }: UseSSEChatO
       setInput("");
       append({ role: "user", content });
     },
-    [input, isLoading, append]
+    [input, isLoading, append],
   );
 
   const stop = useCallback(() => {

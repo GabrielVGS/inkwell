@@ -1,9 +1,10 @@
+import { headers } from "next/headers";
+
 import { streamMonthlySummary } from "@/lib/ai/graphs/monthly-summary-graph";
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { getEntriesForMonth } from "@/lib/db/queries";
-import { monthlySummarySchema } from "@/lib/validations";
 import { createSSEResponse } from "@/lib/utils/sse";
+import { monthlySummarySchema } from "@/lib/validations";
 
 export async function POST(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -23,13 +24,15 @@ export async function POST(req: Request) {
   }
 
   return createSSEResponse(
-    streamMonthlySummary(entries.map((e) => ({
-      content: e.content,
-      createdAt: e.createdAt,
-      mood: e.mood,
-      moodScore: e.moodScore,
-      tags: e.tags,
-    }))),
-    "Monthly summary generation error"
+    streamMonthlySummary(
+      entries.map((e) => ({
+        content: e.content,
+        createdAt: e.createdAt,
+        mood: e.mood,
+        moodScore: e.moodScore,
+        tags: e.tags,
+      })),
+    ),
+    "Monthly summary generation error",
   );
 }

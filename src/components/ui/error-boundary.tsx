@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+
 import { Button } from "./button";
 
 interface ErrorBoundaryProps {
@@ -28,20 +29,20 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   render() {
     if (this.state.hasError) {
-      return this.props.fallback ?? (
-        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-          <p className="text-sm text-muted-foreground italic mb-3">
-            Algo deu errado
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs"
-            onClick={() => this.setState({ hasError: false })}
-          >
-            Tentar novamente
-          </Button>
-        </div>
+      return (
+        this.props.fallback ?? (
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <p className="text-sm text-muted-foreground italic mb-3">Algo deu errado</p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs"
+              onClick={() => this.setState({ hasError: false })}
+            >
+              Tentar novamente
+            </Button>
+          </div>
+        )
       );
     }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+
 import type { JournalEntry } from "@/types";
 
 interface TagCloudProps {
@@ -53,15 +54,10 @@ export function TagCloud({ entries }: TagCloudProps) {
                 className="inline-flex items-baseline gap-1 transition-opacity hover:opacity-100"
                 style={{ opacity: intensity }}
               >
-                <span
-                  className="text-foreground/80"
-                  style={{ fontSize: `${size}rem` }}
-                >
+                <span className="text-foreground/80" style={{ fontSize: `${size}rem` }}>
                   {tag}
                 </span>
-                <span className="text-[10px] text-muted-foreground/40 tabular-nums">
-                  {count}
-                </span>
+                <span className="text-[10px] text-muted-foreground/40 tabular-nums">{count}</span>
               </span>
             );
           })}

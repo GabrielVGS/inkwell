@@ -1,12 +1,10 @@
-import { getReflections, addReflection, getEntry } from "@/lib/db/queries";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+
+import { auth } from "@/lib/auth";
+import { getReflections, addReflection, getEntry } from "@/lib/db/queries";
 import { reflectionCreateSchema } from "@/lib/validations";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ entryId: string }> }
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ entryId: string }> }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -17,10 +15,7 @@ export async function GET(
   return Response.json(reflections);
 }
 
-export async function POST(
-  req: Request,
-  { params }: { params: Promise<{ entryId: string }> }
-) {
+export async function POST(req: Request, { params }: { params: Promise<{ entryId: string }> }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 

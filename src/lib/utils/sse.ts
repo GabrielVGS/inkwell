@@ -1,6 +1,6 @@
 export function createSSEResponse(
   generator: AsyncIterable<string>,
-  errorMessage: string
+  errorMessage: string,
 ): Response {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -13,9 +13,7 @@ export function createSSEResponse(
         controller.close();
       } catch (error) {
         console.error(`SSE stream error (${errorMessage}):`, error);
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ error: errorMessage })}\n\n`)
-        );
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorMessage })}\n\n`));
         controller.close();
       }
     },

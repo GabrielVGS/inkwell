@@ -3,8 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+
 import { useSession, signOut } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/journal", label: "Diario" },
@@ -49,7 +50,7 @@ export function Nav() {
                     "relative px-3 py-1.5 text-sm transition-colors rounded-md",
                     pathname === link.href
                       ? "text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   {link.label}

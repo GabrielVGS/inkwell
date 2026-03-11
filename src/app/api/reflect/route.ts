@@ -1,10 +1,11 @@
+import { headers } from "next/headers";
+
 import { streamReflection } from "@/lib/ai/graphs/reflection-graph";
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import { searchSimilarEntries, getMoodTrend } from "@/lib/db/queries";
-import { reflectSchema } from "@/lib/validations";
 import { RAG_SIMILAR_LIMIT, MOOD_TREND_DAYS } from "@/lib/constants";
+import { searchSimilarEntries, getMoodTrend } from "@/lib/db/queries";
 import { createSSEResponse } from "@/lib/utils/sse";
+import { reflectSchema } from "@/lib/validations";
 
 export async function POST(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -50,6 +51,6 @@ export async function POST(req: Request) {
 
   return createSSEResponse(
     streamReflection(currentEntry, similarEntries, conversationHistory, moodContext),
-    "Reflection error"
+    "Reflection error",
   );
 }

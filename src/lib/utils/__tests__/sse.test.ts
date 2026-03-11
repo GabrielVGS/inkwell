@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import { createSSEResponse } from "../sse";
 
 async function readSSE(response: Response): Promise<string[]> {
@@ -22,7 +23,10 @@ async function readSSE(response: Response): Promise<string[]> {
 
 describe("createSSEResponse", () => {
   it("produces valid SSE data format", async () => {
-    async function* gen() { yield "hello"; yield " world"; }
+    async function* gen() {
+      yield "hello";
+      yield " world";
+    }
     const response = createSSEResponse(gen(), "test error");
     const chunks = await readSSE(response);
     expect(chunks).toContain(JSON.stringify({ content: "hello" }));
@@ -30,14 +34,19 @@ describe("createSSEResponse", () => {
   });
 
   it("sends [DONE] at end", async () => {
-    async function* gen() { yield "data"; }
+    async function* gen() {
+      yield "data";
+    }
     const response = createSSEResponse(gen(), "test error");
     const chunks = await readSSE(response);
     expect(chunks[chunks.length - 1]).toBe("[DONE]");
   });
 
   it("handles generator errors gracefully", async () => {
-    async function* gen() { yield "start"; throw new Error("boom"); }
+    async function* gen() {
+      yield "start";
+      throw new Error("boom");
+    }
     const response = createSSEResponse(gen(), "Stream failed");
     const chunks = await readSSE(response);
     expect(chunks[0]).toBe(JSON.stringify({ content: "start" }));
