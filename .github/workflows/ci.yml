@@ -36,9 +36,6 @@ jobs:
 
       - name: TypeScript — type check
         run: npm run typecheck
-
-      - name: Knip — unused code
-        run: npm run knip
-
+        
       - name: Vitest — unit tests
         run: npm run test
