@@ -25,19 +25,19 @@ Inkwell e um diario reflexivo onde voce escreve livremente sobre seu dia e a IA 
   <em>Landing page</em>
 </p>
 
-<!-- <img src="docs/screenshots/landing.png" width="100%" alt="Landing" /> -->
+<img src="docs/screenshots/landing.png" width="100%" alt="Landing" />
 
 <p align="center">
   <em>Diario — editor, lista de entradas e chat de reflexao</em>
 </p>
 
-<!-- <img src="docs/screenshots/journal.png" width="100%" alt="Journal" /> -->
+<img src="docs/screenshots/journal.png" width="100%" alt="Journal" />
 
 <p align="center">
   <em>Insights — graficos de humor, temas frequentes e resumo semanal</em>
 </p>
 
-<!-- <img src="docs/screenshots/insights.png" width="100%" alt="Insights" /> -->
+<img src="docs/screenshots/insights.png" width="100%" alt="Insights" />
 
 ## Como funciona
 
@@ -134,3 +134,9 @@ make db-reset
 ## Licenca
 
 MIT
+
+##
+
+<p align="center">
+  feito por Gabriel Viana ✨
+</p>

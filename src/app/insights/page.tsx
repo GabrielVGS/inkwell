@@ -5,6 +5,7 @@ import { MoodChart } from "@/components/insights/mood-chart";
 import { TagCloud } from "@/components/insights/tag-cloud";
 import { StatsCards } from "@/components/insights/stats-cards";
 import { Button } from "@/components/ui/button";
+import Markdown from "react-markdown";
 import type { JournalEntry } from "@/types";
 
 export default function InsightsPage() {
@@ -106,8 +107,8 @@ export default function InsightsPage() {
             </div>
             <div className="px-5 py-4">
               {summaryContent ? (
-                <div className="text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
-                  {summaryContent}
+                <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:font-display prose-headings:tracking-tight">
+                  <Markdown>{summaryContent}</Markdown>
                 </div>
               ) : (
                 <p className="text-sm italic text-muted-foreground/50 py-4 text-center">
