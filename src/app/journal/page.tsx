@@ -38,14 +38,26 @@ export default function JournalPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div className="min-h-[calc(100vh-3.5rem)] bg-background">
+      <div className="max-w-[1400px] mx-auto px-6 py-8">
+        {/* Page header */}
+        <div className="mb-8 animate-fade-up">
+          <h1 className="font-display text-2xl italic tracking-tight">Diario</h1>
+          <div className="rule mt-3" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Sidebar: entry list */}
           <div className="lg:col-span-3 order-2 lg:order-1">
-            <h2 className="text-sm font-medium text-muted-foreground mb-3">Entradas recentes</h2>
+            <p className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground/70 mb-4">
+              Entradas recentes
+            </p>
             {loading ? (
-              <p className="text-sm text-muted-foreground">Carregando...</p>
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-24 rounded-lg bg-muted/50 animate-pulse" />
+                ))}
+              </div>
             ) : (
               <EntryList
                 entries={entries}
@@ -60,11 +72,11 @@ export default function JournalPage() {
             <EntryEditor onSave={handleSave} />
 
             {selectedEntry && (
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-muted-foreground">
+              <div className="space-y-3 animate-fade-up">
+                <p className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground/70">
                   Entrada selecionada
-                </h3>
-                <div className="rounded-lg border p-4 text-sm leading-relaxed whitespace-pre-wrap">
+                </p>
+                <div className="rounded-lg border border-border/60 p-5 text-sm leading-relaxed whitespace-pre-wrap bg-card/50">
                   {selectedEntry.content}
                 </div>
               </div>
@@ -80,10 +92,14 @@ export default function JournalPage() {
                 previousEntries={previousEntries}
               />
             ) : (
-              <div className="flex items-center justify-center h-[500px] border rounded-lg">
-                <p className="text-sm text-muted-foreground text-center px-8">
-                  Escreva uma entrada e salve para iniciar a reflexao com IA
-                </p>
+              <div className="flex flex-col items-center justify-center h-[500px] border border-dashed border-border/40 rounded-lg">
+                <div className="text-center px-8 space-y-3">
+                  <div className="mx-auto w-8 h-px bg-muted-foreground/20" />
+                  <p className="text-sm text-muted-foreground italic">
+                    Escreva uma entrada e salve para iniciar a reflexao com IA
+                  </p>
+                  <div className="mx-auto w-8 h-px bg-muted-foreground/20" />
+                </div>
               </div>
             )}
           </div>

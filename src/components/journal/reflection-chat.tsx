@@ -2,11 +2,9 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useSSEChat } from "@/hooks/use-sse-chat";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 import type { JournalEntry } from "@/types";
 
 interface ReflectionChatProps {
@@ -25,7 +23,6 @@ export function ReflectionChat({ entry, previousEntries }: ReflectionChatProps) 
   const [initialMessages, setInitialMessages] = useState<ChatMessage[] | null>(null);
   const [loaded, setLoaded] = useState(false);
 
-  // Load existing reflections from DB
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -53,10 +50,8 @@ export function ReflectionChat({ entry, previousEntries }: ReflectionChatProps) 
     return () => { cancelled = true; };
   }, [entry.id]);
 
-  // Save messages to DB after each exchange
   const handleFinish = useCallback(
     async (userMsg: ChatMessage, assistantMsg: ChatMessage) => {
-      // Save sequentially to guarantee correct created_at order
       await fetch(`/api/reflections/${entry.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -73,9 +68,17 @@ export function ReflectionChat({ entry, previousEntries }: ReflectionChatProps) 
 
   if (!loaded || initialMessages === null) {
     return (
-      <Card className="w-full flex flex-col h-[500px] items-center justify-center">
-        <p className="text-sm text-muted-foreground animate-pulse">Carregando conversa...</p>
-      </Card>
+      <div className="flex flex-col h-[500px] rounded-lg border border-border/60 items-center justify-center">
+        <div className="flex gap-1">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 animate-pulse"
+              style={{ animationDelay: `${i * 150}ms` }}
+            />
+          ))}
+        </div>
+      </div>
     );
   }
 
@@ -122,8 +125,6 @@ function ReflectionChatInner({
     onFinish,
   });
 
-  // Auto-start reflection only if no existing conversation
-  // Ref guard prevents double-fire in React strict mode
   useEffect(() => {
     if (!hasExisting && !startedRef.current) {
       startedRef.current = true;
@@ -132,62 +133,73 @@ function ReflectionChatInner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-scroll
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, scrollRef]);
 
-  // Skip the initial user message (entry content) only for new conversations
   const displayMessages = hasExisting
     ? messages
     : messages.filter((_, i) => i > 0);
 
   return (
-    <Card className="w-full flex flex-col h-[500px]">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-medium">Reflexao</CardTitle>
-        <p className="text-sm text-muted-foreground">
+    <div className="flex flex-col h-[500px] rounded-lg border border-border/60 bg-card/30 overflow-hidden animate-fade-up">
+      {/* Header */}
+      <div className="px-5 py-3.5 border-b border-border/40">
+        <p className="font-display text-base italic tracking-tight">Reflexao</p>
+        <p className="text-[11px] text-muted-foreground/60 mt-0.5">
           Converse sobre o que voce escreveu
         </p>
-      </CardHeader>
-      <CardContent className="flex-1 overflow-hidden p-0">
-        <ScrollArea className="h-full px-6" ref={scrollRef}>
-          <div className="space-y-4 pb-4">
-            {displayMessages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                {message.role === "assistant" && (
-                  <Avatar className="h-8 w-8 shrink-0 bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
-                    IA
-                  </Avatar>
-                )}
-                <div
-                  className={`rounded-lg px-4 py-2 max-w-[80%] text-sm leading-relaxed ${
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
-                  }`}
-                >
-                  {message.content || (
-                    <span className="animate-pulse">Pensando...</span>
-                  )}
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-5" ref={scrollRef}>
+        <div className="py-4 space-y-4">
+          {displayMessages.map((message) => (
+            <div
+              key={message.id}
+              className={cn(
+                "chat-msg flex",
+                message.role === "user" ? "justify-end" : "justify-start"
+              )}
+            >
+              {message.role === "assistant" && (
+                <div className="shrink-0 w-6 h-6 rounded-full bg-foreground/8 flex items-center justify-center mr-2.5 mt-0.5">
+                  <span className="text-[9px] font-medium text-foreground/50 uppercase tracking-wider">
+                    ia
+                  </span>
                 </div>
+              )}
+              <div
+                className={cn(
+                  "rounded-lg px-3.5 py-2.5 max-w-[80%] text-[13px] leading-relaxed",
+                  message.role === "user"
+                    ? "bg-foreground text-background"
+                    : "bg-muted/60 text-foreground/85"
+                )}
+              >
+                {message.content || (
+                  <span className="flex gap-1 items-center text-muted-foreground/50">
+                    <span className="w-1 h-1 rounded-full bg-current animate-pulse" />
+                    <span className="w-1 h-1 rounded-full bg-current animate-pulse" style={{ animationDelay: "150ms" }} />
+                    <span className="w-1 h-1 rounded-full bg-current animate-pulse" style={{ animationDelay: "300ms" }} />
+                  </span>
+                )}
               </div>
-            ))}
-          </div>
-        </ScrollArea>
-      </CardContent>
-      <CardFooter className="pt-3">
-        <form onSubmit={handleSubmit} className="flex w-full gap-2">
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Input */}
+      <div className="px-4 py-3 border-t border-border/40">
+        <form onSubmit={handleSubmit} className="flex gap-2">
           <Textarea
             value={input}
             onChange={handleInputChange}
             placeholder="Responda ou pergunte algo..."
-            className="min-h-[44px] max-h-[120px] resize-none text-sm"
+            className="min-h-[40px] max-h-[100px] resize-none text-[13px] border-border/40 bg-transparent px-3 py-2"
             rows={1}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -196,11 +208,16 @@ function ReflectionChatInner({
               }
             }}
           />
-          <Button type="submit" disabled={isLoading || !input.trim()} size="sm">
+          <Button
+            type="submit"
+            disabled={isLoading || !input.trim()}
+            size="sm"
+            className="shrink-0 text-xs self-end"
+          >
             Enviar
           </Button>
         </form>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }

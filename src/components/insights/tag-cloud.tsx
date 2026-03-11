@@ -1,8 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { JournalEntry } from "@/types";
 
 interface TagCloudProps {
@@ -23,33 +21,52 @@ export function TagCloud({ entries }: TagCloudProps) {
   }, [entries]);
 
   if (tagCounts.length === 0) {
-    return null;
+    return (
+      <div className="rounded-lg border border-border/60 bg-card/30 overflow-hidden animate-fade-up">
+        <div className="px-5 py-4 border-b border-border/40">
+          <p className="font-display text-base italic">Temas frequentes</p>
+        </div>
+        <div className="px-5 py-12 text-center">
+          <p className="text-sm italic text-muted-foreground/50">
+            Temas aparecerao conforme voce escreve
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const maxCount = tagCounts[0]?.[1] ?? 1;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Temas frequentes</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-wrap gap-2">
+    <div className="rounded-lg border border-border/60 bg-card/30 overflow-hidden animate-fade-up">
+      <div className="px-5 py-4 border-b border-border/40">
+        <p className="font-display text-base italic">Temas frequentes</p>
+      </div>
+      <div className="px-5 py-5">
+        <div className="flex flex-wrap gap-x-3 gap-y-2.5">
           {tagCounts.map(([tag, count]) => {
-            const intensity = Math.max(0.4, count / maxCount);
+            const intensity = Math.max(0.35, count / maxCount);
+            const size = 0.75 + intensity * 0.35;
             return (
-              <Badge
+              <span
                 key={tag}
-                variant="secondary"
-                className="text-sm"
-                style={{ opacity: intensity, fontSize: `${0.75 + intensity * 0.5}rem` }}
+                className="inline-flex items-baseline gap-1 transition-opacity hover:opacity-100"
+                style={{ opacity: intensity }}
               >
-                {tag} <span className="ml-1 opacity-60">({count})</span>
-              </Badge>
+                <span
+                  className="text-foreground/80"
+                  style={{ fontSize: `${size}rem` }}
+                >
+                  {tag}
+                </span>
+                <span className="text-[10px] text-muted-foreground/40 tabular-nums">
+                  {count}
+                </span>
+              </span>
             );
           })}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

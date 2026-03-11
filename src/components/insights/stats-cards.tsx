@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { JournalEntry } from "@/types";
 
 interface StatsCardsProps {
@@ -15,11 +14,6 @@ export function StatsCards({ entries }: StatsCardsProps) {
       ? withMood.reduce((sum, e) => sum + (e.moodScore ?? 0), 0) / withMood.length
       : null;
 
-    const avgEnergy = withMood.length > 0
-      ? withMood.reduce((sum, e) => sum + (e.energyLevel ?? 0), 0) / withMood.length
-      : null;
-
-    // Streak: consecutive days with entries
     let streak = 0;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -41,7 +35,6 @@ export function StatsCards({ entries }: StatsCardsProps) {
       }
     }
 
-    // Most common mood
     const moodCounts: Record<string, number> = {};
     for (const e of entries) {
       if (e.mood) moodCounts[e.mood] = (moodCounts[e.mood] || 0) + 1;
@@ -51,7 +44,6 @@ export function StatsCards({ entries }: StatsCardsProps) {
     return {
       totalEntries: entries.length,
       avgMood,
-      avgEnergy,
       streak,
       topMood: topMood?.[0] ?? "-",
     };
@@ -66,43 +58,35 @@ export function StatsCards({ entries }: StatsCardsProps) {
     return "Dificil";
   };
 
+  const items = [
+    { label: "Entradas", value: String(stats.totalEntries), sub: null },
+    {
+      label: "Humor medio",
+      value: moodLabel(stats.avgMood),
+      sub: stats.avgMood !== null ? stats.avgMood.toFixed(2) : null,
+    },
+    { label: "Sequencia", value: `${stats.streak}`, sub: "dias" },
+    { label: "Humor frequente", value: stats.topMood, sub: null },
+  ];
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Entradas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">{stats.totalEntries}</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Humor medio</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">{moodLabel(stats.avgMood)}</p>
-          {stats.avgMood !== null && (
-            <p className="text-xs text-muted-foreground">{stats.avgMood.toFixed(2)}</p>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 stagger-children">
+      {items.map((item) => (
+        <div
+          key={item.label}
+          className="rounded-lg border border-border/60 bg-card/30 px-4 py-4"
+        >
+          <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground/60 mb-2">
+            {item.label}
+          </p>
+          <p className="font-display text-2xl tracking-tight capitalize">
+            {item.value}
+          </p>
+          {item.sub && (
+            <p className="text-[11px] text-muted-foreground/50 mt-0.5">{item.sub}</p>
           )}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Sequencia</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">{stats.streak} dias</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Humor frequente</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold capitalize">{stats.topMood}</p>
-        </CardContent>
-      </Card>
+        </div>
+      ))}
     </div>
   );
 }

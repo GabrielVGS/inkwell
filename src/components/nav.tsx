@@ -13,24 +13,27 @@ export function Nav() {
   const pathname = usePathname();
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="max-w-7xl mx-auto px-4 flex h-14 items-center gap-6">
-        <Link href="/" className="font-semibold text-lg">
+    <nav className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-xl">
+      <div className="max-w-6xl mx-auto px-6 flex h-14 items-center justify-between">
+        <Link href="/" className="font-display text-xl tracking-tight">
           Reflexivo
         </Link>
-        <div className="flex gap-4">
+        <div className="flex items-center gap-1">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={cn(
-                "text-sm transition-colors hover:text-foreground",
+                "relative px-3 py-1.5 text-sm transition-colors rounded-md",
                 pathname === link.href
-                  ? "text-foreground font-medium"
-                  : "text-muted-foreground"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {link.label}
+              {pathname === link.href && (
+                <span className="absolute bottom-0 left-3 right-3 h-px bg-foreground/60" />
+              )}
             </Link>
           ))}
         </div>
