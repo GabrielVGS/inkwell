@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MoodChart } from "@/components/insights/mood-chart";
-import { TagCloud } from "@/components/insights/tag-cloud";
-import { StatsCards } from "@/components/insights/stats-cards";
-import { MoodTrendCard } from "@/components/insights/mood-trend-card";
+import Markdown from "react-markdown";
+
+import type { JournalEntry } from "@/types";
+
 import { MonthlySummary } from "@/components/insights/monthly-summary";
+import { MoodChart } from "@/components/insights/mood-chart";
+import { MoodTrendCard } from "@/components/insights/mood-trend-card";
+import { StatsCards } from "@/components/insights/stats-cards";
+import { TagCloud } from "@/components/insights/tag-cloud";
 import { Button } from "@/components/ui/button";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-import Markdown from "react-markdown";
-import type { JournalEntry } from "@/types";
 
 export default function InsightsPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -136,7 +138,7 @@ export default function InsightsPage() {
                 <p className="text-sm italic text-muted-foreground/50 py-4 text-center">
                   {entries.length === 0
                     ? "Escreva algumas entradas para gerar um resumo semanal."
-                    : "Clique em \"Gerar resumo\" para uma analise reflexiva das suas entradas recentes."}
+                    : 'Clique em "Gerar resumo" para uma analise reflexiva das suas entradas recentes.'}
                 </p>
               )}
             </div>

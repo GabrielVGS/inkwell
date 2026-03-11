@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { ENTRIES_MAX_LENGTH } from "@/lib/constants";
 
 export const moodAnalysisSchema = z.object({
@@ -23,10 +24,14 @@ export const analyzeSchema = z.object({
 
 export const reflectSchema = z.object({
   currentEntry: z.string().min(1),
-  messages: z.array(z.object({
-    role: z.enum(["user", "assistant"]),
-    content: z.string(),
-  })).optional(),
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string(),
+      }),
+    )
+    .optional(),
 });
 
 export const monthlySummarySchema = z.object({

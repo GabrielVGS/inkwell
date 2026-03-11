@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { buildAdaptiveSystemPrompt, buildReflectionPrompt, REFLECTION_SYSTEM_PROMPT } from "../prompts";
+
+import {
+  buildAdaptiveSystemPrompt,
+  buildReflectionPrompt,
+  REFLECTION_SYSTEM_PROMPT,
+} from "../prompts";
 
 describe("buildAdaptiveSystemPrompt", () => {
   it("returns base prompt when no mood context", () => {

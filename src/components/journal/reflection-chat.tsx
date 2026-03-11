@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useSSEChat } from "@/hooks/use-sse-chat";
+
+import type { JournalEntry } from "@/types";
+
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useSSEChat } from "@/hooks/use-sse-chat";
 import { cn } from "@/lib/utils";
-import type { JournalEntry } from "@/types";
 
 interface ReflectionChatProps {
   entry: JournalEntry;
@@ -32,11 +34,13 @@ export function ReflectionChat({ entry }: ReflectionChatProps) {
         if (cancelled) return;
 
         if (reflections.length > 0) {
-          const msgs: ChatMessage[] = reflections.map((r: { id: string; role: "user" | "assistant"; content: string }) => ({
-            id: r.id,
-            role: r.role,
-            content: r.content,
-          }));
+          const msgs: ChatMessage[] = reflections.map(
+            (r: { id: string; role: "user" | "assistant"; content: string }) => ({
+              id: r.id,
+              role: r.role,
+              content: r.content,
+            }),
+          );
           setInitialMessages(msgs);
         } else {
           setInitialMessages([]);
@@ -47,7 +51,9 @@ export function ReflectionChat({ entry }: ReflectionChatProps) {
       setLoaded(true);
     }
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [entry.id]);
 
   const handleFinish = useCallback(
@@ -63,7 +69,7 @@ export function ReflectionChat({ entry }: ReflectionChatProps) {
         body: JSON.stringify({ role: assistantMsg.role, content: assistantMsg.content }),
       });
     },
-    [entry.id]
+    [entry.id],
   );
 
   if (!loaded || initialMessages === null) {
@@ -131,9 +137,7 @@ function ReflectionChatInner({
     }
   }, [messages, scrollRef]);
 
-  const displayMessages = hasExisting
-    ? messages
-    : messages.filter((_, i) => i > 0);
+  const displayMessages = hasExisting ? messages : messages.filter((_, i) => i > 0);
 
   return (
     <div className="flex flex-col h-[500px] rounded-lg border border-border/60 bg-card/30 overflow-hidden animate-fade-up">
@@ -153,7 +157,7 @@ function ReflectionChatInner({
               key={message.id}
               className={cn(
                 "chat-msg flex",
-                message.role === "user" ? "justify-end" : "justify-start"
+                message.role === "user" ? "justify-end" : "justify-start",
               )}
             >
               {message.role === "assistant" && (
@@ -168,14 +172,20 @@ function ReflectionChatInner({
                   "rounded-lg px-3.5 py-2.5 max-w-[80%] text-[13px] leading-relaxed",
                   message.role === "user"
                     ? "bg-foreground text-background"
-                    : "bg-muted/60 text-foreground/85"
+                    : "bg-muted/60 text-foreground/85",
                 )}
               >
                 {message.content || (
                   <span className="flex gap-1 items-center text-muted-foreground/50">
                     <span className="w-1 h-1 rounded-full bg-current animate-pulse" />
-                    <span className="w-1 h-1 rounded-full bg-current animate-pulse" style={{ animationDelay: "150ms" }} />
-                    <span className="w-1 h-1 rounded-full bg-current animate-pulse" style={{ animationDelay: "300ms" }} />
+                    <span
+                      className="w-1 h-1 rounded-full bg-current animate-pulse"
+                      style={{ animationDelay: "150ms" }}
+                    />
+                    <span
+                      className="w-1 h-1 rounded-full bg-current animate-pulse"
+                      style={{ animationDelay: "300ms" }}
+                    />
                   </span>
                 )}
               </div>

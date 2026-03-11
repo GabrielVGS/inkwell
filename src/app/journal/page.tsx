@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+
+import type { JournalEntry, MoodAnalysis } from "@/types";
+
 import { EntryEditor } from "@/components/journal/entry-editor";
 import { EntryList } from "@/components/journal/entry-list";
 import { ReflectionChat } from "@/components/journal/reflection-chat";
 import { WritingSuggestions } from "@/components/journal/writing-suggestions";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-import type { JournalEntry, MoodAnalysis } from "@/types";
 
 export default function JournalPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -113,10 +115,7 @@ export default function JournalPage() {
           <div className="lg:col-span-4 order-3">
             {selectedEntry ? (
               <ErrorBoundary>
-                <ReflectionChat
-                  key={selectedEntry.id}
-                  entry={selectedEntry}
-                />
+                <ReflectionChat key={selectedEntry.id} entry={selectedEntry} />
               </ErrorBoundary>
             ) : (
               <div className="space-y-6">

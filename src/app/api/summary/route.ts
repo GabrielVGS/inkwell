@@ -1,6 +1,7 @@
+import { headers } from "next/headers";
+
 import { streamWeeklySummary } from "@/lib/ai/graphs/summary-graph";
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { createSSEResponse } from "@/lib/utils/sse";
 
 export async function POST(req: Request) {

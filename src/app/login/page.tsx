@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { signIn } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
+import { signIn } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -48,9 +49,7 @@ export default function LoginPage() {
             />
           </div>
           <h1 className="font-display text-3xl italic tracking-tight">Entrar</h1>
-          <p className="text-sm text-muted-foreground/60">
-            Continue seu diario reflexivo
-          </p>
+          <p className="text-sm text-muted-foreground/60">Continue seu diario reflexivo</p>
         </div>
 
         {/* Form */}
@@ -84,9 +83,7 @@ export default function LoginPage() {
             />
           </div>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Entrando..." : "Entrar"}

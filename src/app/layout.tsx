@@ -1,5 +1,7 @@
-import type { Metadata } from "next";
 import { Crimson_Pro, DM_Sans } from "next/font/google";
+
+import type { Metadata } from "next";
+
 import { Nav } from "@/components/nav";
 import "./globals.css";
 
@@ -31,9 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className="dark">
-      <body
-        className={`${crimsonPro.variable} ${dmSans.variable} font-sans antialiased`}
-      >
+      <body className={`${crimsonPro.variable} ${dmSans.variable} font-sans antialiased`}>
         <div className="noise" />
         <Nav />
         {children}

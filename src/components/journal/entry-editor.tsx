@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+
 import type { MoodAnalysis } from "@/types";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 interface EntryEditorProps {
   onSave: (content: string, analysis: MoodAnalysis) => void;
@@ -56,9 +58,7 @@ export function EntryEditor({ onSave, isLoading }: EntryEditorProps) {
         <p className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground/70 mb-1">
           Hoje
         </p>
-        <p className="font-display text-lg capitalize text-foreground/80">
-          {today}
-        </p>
+        <p className="font-display text-lg capitalize text-foreground/80">{today}</p>
       </div>
 
       {/* Writing area */}

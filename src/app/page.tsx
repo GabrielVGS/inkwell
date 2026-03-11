@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
@@ -25,8 +26,8 @@ export default function Home() {
         </div>
 
         <p className="text-muted-foreground leading-relaxed max-w-md mx-auto">
-          Escreva livremente sobre seu dia. A IA faz perguntas reflexivas,
-          identifica padroes emocionais e conecta suas experiencias ao longo do tempo.
+          Escreva livremente sobre seu dia. A IA faz perguntas reflexivas, identifica padroes
+          emocionais e conecta suas experiencias ao longo do tempo.
         </p>
 
         <div className="flex gap-3 justify-center pt-2">

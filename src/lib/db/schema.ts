@@ -84,7 +84,7 @@ export const entries = pgTable(
   (table) => [
     index("entries_created_at_idx").on(table.createdAt),
     index("entries_user_id_idx").on(table.userId),
-  ]
+  ],
 );
 
 export const reflections = pgTable(
@@ -98,9 +98,7 @@ export const reflections = pgTable(
     content: text("content").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [
-    index("reflections_entry_id_idx").on(table.entryId),
-  ]
+  (table) => [index("reflections_entry_id_idx").on(table.entryId)],
 );
 
 export const weeklySummaries = pgTable(
@@ -120,7 +118,5 @@ export const weeklySummaries = pgTable(
     }>(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [
-    index("weekly_summaries_user_id_idx").on(table.userId),
-  ]
+  (table) => [index("weekly_summaries_user_id_idx").on(table.userId)],
 );

@@ -52,18 +52,17 @@ export function MoodTrendCard() {
         <span className={`font-display text-xl ${trendColor}`}>
           {trendIcon} {trendLabel}
         </span>
-        <span className="text-xs text-muted-foreground/50">
-          Media: {trend.avgScore.toFixed(2)}
-        </span>
+        <span className="text-xs text-muted-foreground/50">Media: {trend.avgScore.toFixed(2)}</span>
       </div>
       <div className="flex items-end gap-[3px] h-10">
         {trend.recentMoods.map((m, i) => {
           const height = Math.max(10, ((m.moodScore + 1) / 2) * 100);
-          const color = m.moodScore >= 0.3
-            ? "bg-green-500/60"
-            : m.moodScore >= -0.1
-              ? "bg-yellow-500/50"
-              : "bg-red-500/50";
+          const color =
+            m.moodScore >= 0.3
+              ? "bg-green-500/60"
+              : m.moodScore >= -0.1
+                ? "bg-yellow-500/50"
+                : "bg-red-500/50";
           return (
             <div
               key={i}

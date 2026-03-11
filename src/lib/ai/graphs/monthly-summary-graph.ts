@@ -1,17 +1,32 @@
-import { StateGraph, Annotation } from "@langchain/langgraph";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
-import { getSummaryModel } from "../llm";
+import { StateGraph, Annotation } from "@langchain/langgraph";
+
 import { MONTHLY_SUMMARY_PROMPT } from "../../prompts";
+import { getSummaryModel } from "../llm";
 
 // State
 const MonthlySummaryState = Annotation.Root({
-  entries: Annotation<{ content: string; createdAt: string; mood: string | null; moodScore: number | null; tags: string[] }[]>,
+  entries: Annotation<
+    {
+      content: string;
+      createdAt: string;
+      mood: string | null;
+      moodScore: number | null;
+      tags: string[];
+    }[]
+  >,
   summary: Annotation<string>,
 });
 
 // Streaming version
 export async function* streamMonthlySummary(
-  entries: { content: string; createdAt: string; mood: string | null; moodScore: number | null; tags: string[] }[]
+  entries: {
+    content: string;
+    createdAt: string;
+    mood: string | null;
+    moodScore: number | null;
+    tags: string[];
+  }[],
 ) {
   const model = getSummaryModel();
 
@@ -26,7 +41,7 @@ export async function* streamMonthlySummary(
   const stream = await model.stream([
     new SystemMessage(MONTHLY_SUMMARY_PROMPT),
     new HumanMessage(
-      `Aqui estao as ${entries.length} entradas do diario deste mes:\n\n${entriesText}`
+      `Aqui estao as ${entries.length} entradas do diario deste mes:\n\n${entriesText}`,
     ),
   ]);
 

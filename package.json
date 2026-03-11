@@ -13,7 +13,13 @@
     "db:studio": "node --env-file=.env.local node_modules/.bin/drizzle-kit studio",
     "db:setup": "npx tsx --env-file=.env.local src/lib/db/setup.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "knip": "knip",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run knip && npm run test",
+    "prepare": "husky"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
@@ -48,6 +54,12 @@
     "drizzle-kit": "^0.31.9",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import-x": "^4.16.2",
+    "husky": "^9.1.7",
+    "knip": "^5.86.0",
+    "lint-staged": "^16.3.3",
+    "prettier": "^3.8.1",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5",

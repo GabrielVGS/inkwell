@@ -1,8 +1,9 @@
 "use client";
 
+import type { JournalEntry } from "@/types";
+
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { JournalEntry } from "@/types";
 
 interface EntryListProps {
   entries: JournalEntry[];
@@ -34,12 +35,8 @@ export function EntryList({ entries, selectedId, onSelect, onLoadMore }: EntryLi
   if (entries.length === 0) {
     return (
       <div className="text-center py-16">
-        <p className="text-sm italic text-muted-foreground/60">
-          Nenhuma entrada ainda
-        </p>
-        <p className="text-xs text-muted-foreground/40 mt-1">
-          Comece escrevendo sobre seu dia
-        </p>
+        <p className="text-sm italic text-muted-foreground/60">Nenhuma entrada ainda</p>
+        <p className="text-xs text-muted-foreground/40 mt-1">Comece escrevendo sobre seu dia</p>
       </div>
     );
   }
@@ -57,9 +54,7 @@ export function EntryList({ entries, selectedId, onSelect, onLoadMore }: EntryLi
             className={cn(
               "w-full text-left rounded-lg p-3.5 transition-all duration-200",
               "hover:bg-accent/60",
-              isSelected
-                ? "bg-accent/80 shadow-sm"
-                : "bg-transparent"
+              isSelected ? "bg-accent/80 shadow-sm" : "bg-transparent",
             )}
             onClick={() => onSelect(entry)}
           >
@@ -73,9 +68,7 @@ export function EntryList({ entries, selectedId, onSelect, onLoadMore }: EntryLi
                 })}
               </span>
               {entry.mood && (
-                <span className="text-[11px] text-muted-foreground/70">
-                  {entry.mood}
-                </span>
+                <span className="text-[11px] text-muted-foreground/70">{entry.mood}</span>
               )}
             </div>
 
@@ -87,11 +80,7 @@ export function EntryList({ entries, selectedId, onSelect, onLoadMore }: EntryLi
             {/* Mood bar */}
             <div className="w-full h-[3px] rounded-full bg-muted/60 overflow-hidden">
               <div
-                className={cn(
-                  "mood-bar",
-                  moodColor(entry.moodScore),
-                  moodWidth(entry.moodScore)
-                )}
+                className={cn("mood-bar", moodColor(entry.moodScore), moodWidth(entry.moodScore))}
               />
             </div>
 
@@ -99,10 +88,7 @@ export function EntryList({ entries, selectedId, onSelect, onLoadMore }: EntryLi
             {entry.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2.5">
                 {entry.tags.slice(0, 3).map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-[10px] text-muted-foreground/50 tracking-wide"
-                  >
+                  <span key={tag} className="text-[10px] text-muted-foreground/50 tracking-wide">
                     #{tag}
                   </span>
                 ))}

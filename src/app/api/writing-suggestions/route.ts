@@ -1,8 +1,9 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import { getWritingContext } from "@/lib/db/queries";
-import { getAnalysisModel } from "@/lib/ai/llm";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
+import { headers } from "next/headers";
+
+import { getAnalysisModel } from "@/lib/ai/llm";
+import { auth } from "@/lib/auth";
+import { getWritingContext } from "@/lib/db/queries";
 import { WRITING_SUGGESTIONS_PROMPT } from "@/lib/prompts";
 
 export async function GET() {
@@ -39,17 +40,35 @@ export async function GET() {
       return Response.json(suggestions);
     } catch {
       return Response.json([
-        { title: "Como foi seu dia hoje?", description: "Escreva livremente sobre os momentos que marcaram o dia." },
-        { title: "Algo pelo qual sou grato", description: "Reflita sobre algo positivo, por menor que seja." },
-        { title: "O que está na minha mente", description: "Coloque no papel os pensamentos que estão ocupando espaço." },
+        {
+          title: "Como foi seu dia hoje?",
+          description: "Escreva livremente sobre os momentos que marcaram o dia.",
+        },
+        {
+          title: "Algo pelo qual sou grato",
+          description: "Reflita sobre algo positivo, por menor que seja.",
+        },
+        {
+          title: "O que está na minha mente",
+          description: "Coloque no papel os pensamentos que estão ocupando espaço.",
+        },
       ]);
     }
   } catch (error) {
     console.error("Writing suggestions error:", error);
     return Response.json([
-      { title: "Como foi seu dia hoje?", description: "Escreva livremente sobre os momentos que marcaram o dia." },
-      { title: "Algo pelo qual sou grato", description: "Reflita sobre algo positivo, por menor que seja." },
-      { title: "O que está na minha mente", description: "Coloque no papel os pensamentos que estão ocupando espaço." },
+      {
+        title: "Como foi seu dia hoje?",
+        description: "Escreva livremente sobre os momentos que marcaram o dia.",
+      },
+      {
+        title: "Algo pelo qual sou grato",
+        description: "Reflita sobre algo positivo, por menor que seja.",
+      },
+      {
+        title: "O que está na minha mente",
+        description: "Coloque no papel os pensamentos que estão ocupando espaço.",
+      },
     ]);
   }
 }

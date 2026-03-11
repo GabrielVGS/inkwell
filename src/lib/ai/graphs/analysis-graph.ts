@@ -1,8 +1,9 @@
-import { StateGraph, Annotation } from "@langchain/langgraph";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
+import { StateGraph, Annotation } from "@langchain/langgraph";
 import { z } from "zod";
-import { getAnalysisModel } from "../llm";
+
 import { MOOD_ANALYSIS_PROMPT } from "../../prompts";
+import { getAnalysisModel } from "../llm";
 
 export const MoodAnalysisSchema = z.object({
   mood: z.string(),
@@ -80,7 +81,9 @@ const workflow = new StateGraph(AnalysisState)
 export const analysisGraph = workflow.compile();
 
 // Helper
-export async function analyzeEntry(content: string): Promise<MoodAnalysis & { fallback?: boolean }> {
+export async function analyzeEntry(
+  content: string,
+): Promise<MoodAnalysis & { fallback?: boolean }> {
   const result = await analysisGraph.invoke({ content, analysis: null, fallback: false });
   return { ...result.analysis!, fallback: result.fallback || undefined };
 }

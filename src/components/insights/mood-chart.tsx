@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
+
 import type { JournalEntry } from "@/types";
 
 interface MoodChartProps {
@@ -38,7 +39,10 @@ export function MoodChart({ entries }: MoodChartProps) {
 
   const dailyData = useMemo(() => {
     const filtered = entries.filter((e) => e.moodScore !== null);
-    const byDay = new Map<string, { scores: number[]; energies: (number | null)[]; moods: string[] }>();
+    const byDay = new Map<
+      string,
+      { scores: number[]; energies: (number | null)[]; moods: string[] }
+    >();
 
     for (const e of filtered) {
       const d = new Date(e.createdAt);
@@ -137,11 +141,7 @@ export function MoodChart({ entries }: MoodChartProps) {
         </div>
       </div>
       <div className="px-3 py-4">
-        {view === "daily" ? (
-          <DailyChart data={dailyData} />
-        ) : (
-          <DetailedChart data={detailedData} />
-        )}
+        {view === "daily" ? <DailyChart data={dailyData} /> : <DetailedChart data={detailedData} />}
         <div className="flex gap-5 justify-center mt-1 text-[11px] text-muted-foreground/50">
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-[2px] rounded-full bg-[var(--chart-1)]" />
@@ -203,24 +203,16 @@ function DailyChart({ data }: { data: DailyPoint[] }) {
             return (
               <div className="rounded-md bg-popover border border-border/60 px-3 py-2 shadow-lg text-xs">
                 <p className="font-medium mb-1">{label}</p>
-                <p className="text-muted-foreground">
-                  Humor medio: {d.humor.toFixed(2)}
-                </p>
+                <p className="text-muted-foreground">Humor medio: {d.humor.toFixed(2)}</p>
                 {d.energia != null && (
                   <p className="text-muted-foreground">
                     Energia media: {(d.energia * 100).toFixed(0)}%
                   </p>
                 )}
                 {d.moods.length > 0 && (
-                  <p className="text-muted-foreground">
-                    Humores: {d.moods.join(", ")}
-                  </p>
+                  <p className="text-muted-foreground">Humores: {d.moods.join(", ")}</p>
                 )}
-                {d.count > 1 && (
-                  <p className="text-muted-foreground/60 mt-1">
-                    {d.count} entradas
-                  </p>
-                )}
+                {d.count > 1 && <p className="text-muted-foreground/60 mt-1">{d.count} entradas</p>}
               </div>
             );
           }}
@@ -305,9 +297,7 @@ function DetailedChart({ data }: { data: DetailPoint[] }) {
                   Humor: {d.mood ?? "?"} ({d.humor.toFixed(2)})
                 </p>
                 {d.energia != null && (
-                  <p className="text-muted-foreground">
-                    Energia: {(d.energia * 100).toFixed(0)}%
-                  </p>
+                  <p className="text-muted-foreground">Energia: {(d.energia * 100).toFixed(0)}%</p>
                 )}
               </div>
             );

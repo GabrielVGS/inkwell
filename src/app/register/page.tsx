@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { signUp } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
+import { signUp } from "@/lib/auth-client";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -50,9 +51,7 @@ export default function RegisterPage() {
             />
           </div>
           <h1 className="font-display text-3xl italic tracking-tight">Criar conta</h1>
-          <p className="text-sm text-muted-foreground/60">
-            Comece seu diario reflexivo
-          </p>
+          <p className="text-sm text-muted-foreground/60">Comece seu diario reflexivo</p>
         </div>
 
         {/* Form */}
@@ -100,9 +99,7 @@ export default function RegisterPage() {
             />
           </div>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Criando conta..." : "Criar conta"}

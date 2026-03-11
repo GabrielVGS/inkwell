@@ -1,6 +1,7 @@
-import { getEntries, saveEntry } from "@/lib/db/queries";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+
+import { auth } from "@/lib/auth";
+import { getEntries, saveEntry } from "@/lib/db/queries";
 import { entryCreateSchema } from "@/lib/validations";
 
 export async function GET(req: Request) {

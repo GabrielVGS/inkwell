@@ -1,4 +1,4 @@
-.PHONY: dev build lint db-up db-down db-reset db-setup db-push db-generate db-migrate db-studio setup
+.PHONY: dev build lint format typecheck knip check db-up db-down db-reset db-setup db-push db-generate db-migrate db-studio setup
 
 # Development
 dev:
@@ -9,6 +9,18 @@ build:
 
 lint:
 	npm run lint
+
+format:
+	npm run format
+
+typecheck:
+	npm run typecheck
+
+knip:
+	npm run knip
+
+check:
+	npm run check
 
 # Database
 db-up:

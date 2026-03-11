@@ -125,11 +125,47 @@ make db-reset
 | `make setup`     | Setup completo do zero             |
 | `make dev`       | Inicia servidor de desenvolvimento |
 | `make build`     | Build de producao                  |
+| `make lint`      | Executa ESLint                     |
+| `make format`    | Formata codigo com Prettier        |
+| `make typecheck` | Verifica tipos com TypeScript      |
+| `make knip`      | Detecta codigo morto               |
+| `make check`     | Executa todas as verificacoes      |
 | `make db-up`     | Sobe PostgreSQL via Docker         |
 | `make db-down`   | Para PostgreSQL                    |
 | `make db-reset`  | Recria banco do zero               |
 | `make db-push`   | Aplica schema no banco             |
 | `make db-studio` | Abre Drizzle Studio                |
+
+## Development Tooling
+
+O projeto inclui ferramentas de desenvolvimento automatizadas:
+
+| Ferramenta     | Proposito                 | Comando                                   |
+| -------------- | ------------------------- | ----------------------------------------- |
+| **Prettier**   | Formatacao de codigo      | `npm run format` / `npm run format:check` |
+| **ESLint**     | Linting + import ordering | `npm run lint`                            |
+| **TypeScript** | Verificacao de tipos      | `npm run typecheck`                       |
+| **Knip**       | Deteccao de codigo morto  | `npm run knip`                            |
+| **Vitest**     | Testes unitarios          | `npm run test`                            |
+
+### Pre-commit hooks
+
+Ao commitar, **Husky** + **lint-staged** executam automaticamente:
+
+- ESLint (com auto-fix) + Prettier em arquivos `.ts`, `.tsx`, `.mts`
+- Prettier em arquivos `.json`, `.md`, `.css`, `.mjs`
+
+### CI (GitHub Actions)
+
+O workflow `.github/workflows/ci.yml` roda em push/PR para `main`:
+
+1. Prettier — verificacao de formatacao
+2. ESLint — linting
+3. TypeScript — verificacao de tipos
+4. Knip — codigo morto
+5. Vitest — testes unitarios
+
+Para rodar todas as verificacoes localmente: `npm run check` ou `make check`.
 
 ## Disclaimer
 
