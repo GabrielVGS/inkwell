@@ -11,10 +11,12 @@ interface Message {
 interface UseSSEChatOptions {
   api: string;
   body?: Record<string, unknown>;
+  initialMessages?: Message[];
+  onFinish?: (userMessage: Message, assistantMessage: Message) => void;
 }
 
-export function useSSEChat({ api, body }: UseSSEChatOptions) {
-  const [messages, setMessages] = useState<Message[]>([]);
+export function useSSEChat({ api, body, initialMessages, onFinish }: UseSSEChatOptions) {
+  const [messages, setMessages] = useState<Message[]>(initialMessages ?? []);
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
   const abortRef = useRef<AbortController | null>(null);
@@ -33,6 +35,7 @@ export function useSSEChat({ api, body }: UseSSEChatOptions) {
 
       // Create assistant placeholder
       const assistantId = crypto.randomUUID();
+      let assistantContent = "";
       setMessages((prev) => [
         ...prev,
         { id: assistantId, role: "assistant", content: "" },
@@ -78,10 +81,11 @@ export function useSSEChat({ api, body }: UseSSEChatOptions) {
             try {
               const parsed = JSON.parse(data);
               if (parsed.content) {
+                assistantContent += parsed.content;
                 setMessages((prev) =>
                   prev.map((m) =>
                     m.id === assistantId
-                      ? { ...m, content: m.content + parsed.content }
+                      ? { ...m, content: assistantContent }
                       : m
                   )
                 );
@@ -90,6 +94,16 @@ export function useSSEChat({ api, body }: UseSSEChatOptions) {
               // skip malformed chunks
             }
           }
+        }
+
+        // Stream finished — notify caller so it can persist
+        if (onFinish && assistantContent) {
+          const assistantMsg: Message = {
+            id: assistantId,
+            role: "assistant",
+            content: assistantContent,
+          };
+          onFinish(userMsg, assistantMsg);
         }
       } catch (error) {
         if ((error as Error).name !== "AbortError") {
@@ -105,7 +119,7 @@ export function useSSEChat({ api, body }: UseSSEChatOptions) {
         setIsLoading(false);
       }
     },
-    [api, body, messages]
+    [api, body, messages, onFinish]
   );
 
   const handleSubmit = useCallback(
