@@ -1,4 +1,4 @@
-import { getReflections, addReflection } from "@/lib/db/queries";
+import { getReflections, addReflection, getEntry } from "@/lib/db/queries";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
@@ -10,6 +10,8 @@ export async function GET(
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { entryId } = await params;
+  const entry = await getEntry(entryId, session.user.id);
+  if (!entry) return Response.json({ error: "Not found" }, { status: 404 });
   const reflections = await getReflections(entryId);
   return Response.json(reflections);
 }
@@ -22,6 +24,9 @@ export async function POST(
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { entryId } = await params;
+  const entry = await getEntry(entryId, session.user.id);
+  if (!entry) return Response.json({ error: "Not found" }, { status: 404 });
+
   const { role, content } = await req.json();
 
   if (!role || !content) {
