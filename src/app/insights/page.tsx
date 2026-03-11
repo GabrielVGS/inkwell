@@ -7,6 +7,7 @@ import { StatsCards } from "@/components/insights/stats-cards";
 import { MoodTrendCard } from "@/components/insights/mood-trend-card";
 import { MonthlySummary } from "@/components/insights/monthly-summary";
 import { Button } from "@/components/ui/button";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import Markdown from "react-markdown";
 import type { JournalEntry } from "@/types";
 
@@ -84,8 +85,12 @@ export default function InsightsPage() {
         {/* Mood trend + Charts */}
         <MoodTrendCard />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <MoodChart entries={entries} />
-          <TagCloud entries={entries} />
+          <ErrorBoundary>
+            <MoodChart entries={entries} />
+          </ErrorBoundary>
+          <ErrorBoundary>
+            <TagCloud entries={entries} />
+          </ErrorBoundary>
         </div>
 
         {/* Weekly summary */}

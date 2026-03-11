@@ -5,6 +5,7 @@ import { EntryEditor } from "@/components/journal/entry-editor";
 import { EntryList } from "@/components/journal/entry-list";
 import { ReflectionChat } from "@/components/journal/reflection-chat";
 import { WritingSuggestions } from "@/components/journal/writing-suggestions";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import type { JournalEntry, MoodAnalysis } from "@/types";
 
 export default function JournalPage() {
@@ -77,7 +78,9 @@ export default function JournalPage() {
 
           {/* Main: editor */}
           <div className="lg:col-span-5 order-1 lg:order-2 space-y-6">
-            <EntryEditor onSave={handleSave} />
+            <ErrorBoundary>
+              <EntryEditor onSave={handleSave} />
+            </ErrorBoundary>
 
             {selectedEntry && (
               <div className="space-y-3 animate-fade-up">
@@ -94,10 +97,12 @@ export default function JournalPage() {
           {/* Right: reflection chat */}
           <div className="lg:col-span-4 order-3">
             {selectedEntry ? (
-              <ReflectionChat
-                key={selectedEntry.id}
-                entry={selectedEntry}
-              />
+              <ErrorBoundary>
+                <ReflectionChat
+                  key={selectedEntry.id}
+                  entry={selectedEntry}
+                />
+              </ErrorBoundary>
             ) : (
               <div className="space-y-6">
                 <div className="flex flex-col items-center justify-center h-[200px] border border-dashed border-border/40 rounded-lg">
