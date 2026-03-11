@@ -293,11 +293,11 @@ Phase 4.1 (error boundaries) → 4.2 (promises + status checks) → 4.3 (a11y)
 - `src/app/api/__tests__/entries.test.ts`, `reflections.test.ts`, `monthly-summary.test.ts`
 - `src/lib/utils/__tests__/sse.test.ts`
 
-**Modified files (~18)**:
+**Modified files (~22)**:
 - All API routes (10): entries, entries/[id], reflections/[entryId], reflect, analyze, summary, monthly-summary, mood-trends, entries/search, writing-suggestions
 - Components (6): reflection-chat, entry-editor, mood-chart, monthly-summary, mood-trend-card, entry-list
 - Pages (2): journal/page, insights/page
-- Lib (3): queries.ts, prompts.ts (import constants), reflection-graph.ts, analysis-graph.ts
+- Lib (4): queries.ts, prompts.ts, reflection-graph.ts, analysis-graph.ts
 
 **Deleted files (1)**:
 - `src/lib/store.ts`
