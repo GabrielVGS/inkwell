@@ -16,9 +16,9 @@ export default function InsightsPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    fetch("/api/entries")
+    fetch("/api/entries?all=true")
       .then((res) => res.json())
-      .then(setEntries);
+      .then((data) => setEntries(data.entries));
   }, []);
 
   const generateSummary = async () => {

@@ -11,13 +11,23 @@ export default function JournalPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [loading, setLoading] = useState(true);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
 
   const fetchEntries = useCallback(async () => {
     const res = await fetch("/api/entries");
     const data = await res.json();
-    setEntries(data);
+    setEntries(data.entries);
+    setNextCursor(data.nextCursor);
     setLoading(false);
   }, []);
+
+  const loadMore = useCallback(async () => {
+    if (!nextCursor) return;
+    const res = await fetch(`/api/entries?cursor=${encodeURIComponent(nextCursor)}`);
+    const data = await res.json();
+    setEntries((prev) => [...prev, ...data.entries]);
+    setNextCursor(data.nextCursor);
+  }, [nextCursor]);
 
   useEffect(() => {
     fetchEntries();
@@ -60,6 +70,7 @@ export default function JournalPage() {
                 entries={entries}
                 selectedId={selectedEntry?.id}
                 onSelect={setSelectedEntry}
+                onLoadMore={nextCursor ? loadMore : undefined}
               />
             )}
           </div>

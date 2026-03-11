@@ -3,7 +3,7 @@ import { entries, reflections, weeklySummaries } from "./schema";
 import { eq, desc, gte, lt, and, sql } from "drizzle-orm";
 import { generateEmbedding } from "@/lib/ai/embeddings";
 import type { JournalEntry, Reflection, WeeklySummary, MoodAnalysis } from "@/types";
-import { MOOD_TREND_DAYS, TREND_THRESHOLD, WRITING_CONTEXT_LIMIT } from "@/lib/constants";
+import { MOOD_TREND_DAYS, TREND_THRESHOLD, WRITING_CONTEXT_LIMIT, ENTRIES_PAGE_SIZE, INSIGHTS_ENTRIES_CAP } from "@/lib/constants";
 
 // --- Entries ---
 
@@ -20,13 +20,29 @@ function rowToEntry(row: typeof entries.$inferSelect): JournalEntry {
   };
 }
 
-export async function getEntries(userId: string): Promise<JournalEntry[]> {
+export async function getEntries(
+  userId: string,
+  options?: { limit?: number; cursor?: string; all?: boolean }
+): Promise<{ entries: JournalEntry[]; nextCursor: string | null }> {
+  const limit = options?.all ? INSIGHTS_ENTRIES_CAP : (options?.limit ?? ENTRIES_PAGE_SIZE);
+  const conditions = [eq(entries.userId, userId)];
+
+  if (options?.cursor) {
+    conditions.push(lt(entries.createdAt, new Date(options.cursor)));
+  }
+
   const rows = await db
     .select()
     .from(entries)
-    .where(eq(entries.userId, userId))
-    .orderBy(desc(entries.createdAt));
-  return rows.map(rowToEntry);
+    .where(and(...conditions))
+    .orderBy(desc(entries.createdAt))
+    .limit(limit + 1);
+
+  const hasMore = rows.length > limit;
+  const sliced = hasMore ? rows.slice(0, limit) : rows;
+  const nextCursor = hasMore ? sliced[sliced.length - 1].createdAt.toISOString() : null;
+
+  return { entries: sliced.map(rowToEntry), nextCursor };
 }
 
 export async function getEntry(id: string, userId: string): Promise<JournalEntry | undefined> {
