@@ -13,9 +13,14 @@ export function MoodTrendCard() {
 
   useEffect(() => {
     fetch("/api/mood-trends?days=14")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error(`Failed to fetch mood trends: ${res.status}`);
+        return res.json();
+      })
       .then(setTrend)
-      .catch(() => {});
+      .catch((err) => {
+        console.error("Failed to load mood trends:", err);
+      });
   }, []);
 
   if (!trend || trend.recentMoods.length < 3) return null;

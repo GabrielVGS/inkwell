@@ -15,11 +15,19 @@ export default function InsightsPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [summaryContent, setSummaryContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     fetch("/api/entries?all=true")
-      .then((res) => res.json())
-      .then((data) => setEntries(data.entries));
+      .then((res) => {
+        if (!res.ok) throw new Error(`Failed to fetch entries: ${res.status}`);
+        return res.json();
+      })
+      .then((data) => setEntries(data.entries))
+      .catch((err) => {
+        console.error("Failed to load entries:", err);
+        setFetchError(true);
+      });
   }, []);
 
   const generateSummary = async () => {
@@ -78,6 +86,12 @@ export default function InsightsPage() {
           <h1 className="font-display text-2xl italic tracking-tight">Insights</h1>
           <div className="rule mt-3" />
         </div>
+
+        {fetchError && (
+          <p className="text-sm italic text-muted-foreground/60 text-center py-2">
+            Nao foi possivel carregar as entradas.
+          </p>
+        )}
 
         {/* Stats */}
         <StatsCards entries={entries} />

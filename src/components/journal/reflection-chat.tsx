@@ -27,6 +27,7 @@ export function ReflectionChat({ entry }: ReflectionChatProps) {
     async function load() {
       try {
         const res = await fetch(`/api/reflections/${entry.id}`);
+        if (!res.ok) throw new Error(`Failed to fetch reflections: ${res.status}`);
         const reflections = await res.json();
         if (cancelled) return;
 

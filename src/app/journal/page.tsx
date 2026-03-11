@@ -12,22 +12,37 @@ export default function JournalPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
 
   const fetchEntries = useCallback(async () => {
-    const res = await fetch("/api/entries");
-    const data = await res.json();
-    setEntries(data.entries);
-    setNextCursor(data.nextCursor);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/entries");
+      if (!res.ok) throw new Error(`Failed to fetch entries: ${res.status}`);
+      const data = await res.json();
+      setEntries(data.entries);
+      setNextCursor(data.nextCursor);
+      setError(false);
+    } catch (err) {
+      console.error("fetchEntries error:", err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const loadMore = useCallback(async () => {
     if (!nextCursor) return;
-    const res = await fetch(`/api/entries?cursor=${encodeURIComponent(nextCursor)}`);
-    const data = await res.json();
-    setEntries((prev) => [...prev, ...data.entries]);
-    setNextCursor(data.nextCursor);
+    try {
+      const res = await fetch(`/api/entries?cursor=${encodeURIComponent(nextCursor)}`);
+      if (!res.ok) throw new Error(`Failed to load more entries: ${res.status}`);
+      const data = await res.json();
+      setEntries((prev) => [...prev, ...data.entries]);
+      setNextCursor(data.nextCursor);
+    } catch (err) {
+      console.error("loadMore error:", err);
+      setError(true);
+    }
   }, [nextCursor]);
 
   useEffect(() => {
