@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ENTRIES_MAX_LENGTH } from "@/lib/constants";
 
 export const moodAnalysisSchema = z.object({
   mood: z.string(),
@@ -8,7 +9,7 @@ export const moodAnalysisSchema = z.object({
 });
 
 export const entryCreateSchema = z.object({
-  content: z.string().min(1).max(10000),
+  content: z.string().min(1).max(ENTRIES_MAX_LENGTH),
   analysis: moodAnalysisSchema.optional(),
 });
 
@@ -17,7 +18,7 @@ export const entryUpdateSchema = z.object({
 });
 
 export const analyzeSchema = z.object({
-  content: z.string().min(1).max(10000),
+  content: z.string().min(1).max(ENTRIES_MAX_LENGTH),
 });
 
 export const reflectSchema = z.object({

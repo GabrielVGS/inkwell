@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { searchSimilarEntries, getMoodTrend } from "@/lib/db/queries";
 import { reflectSchema } from "@/lib/validations";
+import { RAG_SIMILAR_LIMIT, MOOD_TREND_DAYS } from "@/lib/constants";
 
 export async function POST(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -19,7 +20,7 @@ export async function POST(req: Request) {
   // RAG: find semantically similar past entries
   let similarEntries: { content: string; createdAt: string; mood: string | null }[] = [];
   try {
-    const results = await searchSimilarEntries(session.user.id, currentEntry, 5);
+    const results = await searchSimilarEntries(session.user.id, currentEntry, RAG_SIMILAR_LIMIT);
     // Exclude the current entry itself
     similarEntries = results
       .filter((e) => e.content !== currentEntry)
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
   // Adaptive prompts: get mood trend for tone adjustment
   let moodContext: { avgScore: number; trend: "improving" | "declining" | "stable" } | undefined;
   try {
-    const trend = await getMoodTrend(session.user.id, 14);
+    const trend = await getMoodTrend(session.user.id, MOOD_TREND_DAYS);
     if (trend.recentMoods.length >= 3) {
       moodContext = { avgScore: trend.avgScore, trend: trend.trend };
     }

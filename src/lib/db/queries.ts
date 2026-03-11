@@ -3,6 +3,7 @@ import { entries, reflections, weeklySummaries } from "./schema";
 import { eq, desc, gte, lt, and, sql } from "drizzle-orm";
 import { generateEmbedding } from "@/lib/ai/embeddings";
 import type { JournalEntry, Reflection, WeeklySummary, MoodAnalysis } from "@/types";
+import { MOOD_TREND_DAYS, TREND_THRESHOLD, WRITING_CONTEXT_LIMIT } from "@/lib/constants";
 
 // --- Entries ---
 
@@ -169,7 +170,7 @@ export async function addReflection(
 
 export async function getMoodTrend(
   userId: string,
-  days: number = 14
+  days: number = MOOD_TREND_DAYS
 ): Promise<{ avgScore: number; trend: "improving" | "declining" | "stable"; recentMoods: { mood: string; moodScore: number; date: string }[] }> {
   const since = new Date();
   since.setDate(since.getDate() - days);
@@ -199,7 +200,7 @@ export async function getMoodTrend(
   const avgSecond = secondHalf.reduce((s, r) => s + r.moodScore!, 0) / secondHalf.length;
 
   const diff = avgSecond - avgFirst;
-  const trend = diff > 0.15 ? "improving" : diff < -0.15 ? "declining" : "stable";
+  const trend = diff > TREND_THRESHOLD ? "improving" : diff < -TREND_THRESHOLD ? "declining" : "stable";
 
   return {
     avgScore,
@@ -237,7 +238,8 @@ export async function getWritingContext(userId: string): Promise<{
     .select({ tags: entries.tags, mood: entries.mood, createdAt: entries.createdAt })
     .from(entries)
     .where(eq(entries.userId, userId))
-    .orderBy(desc(entries.createdAt));
+    .orderBy(desc(entries.createdAt))
+    .limit(WRITING_CONTEXT_LIMIT);
 
   const totalEntries = allEntries.length;
   const daysSinceLastEntry = allEntries.length > 0
