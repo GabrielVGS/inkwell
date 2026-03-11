@@ -9,7 +9,6 @@ import type { JournalEntry } from "@/types";
 
 interface ReflectionChatProps {
   entry: JournalEntry;
-  previousEntries?: JournalEntry[];
 }
 
 interface ChatMessage {
@@ -18,7 +17,7 @@ interface ChatMessage {
   content: string;
 }
 
-export function ReflectionChat({ entry, previousEntries }: ReflectionChatProps) {
+export function ReflectionChat({ entry }: ReflectionChatProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [initialMessages, setInitialMessages] = useState<ChatMessage[] | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -85,7 +84,6 @@ export function ReflectionChat({ entry, previousEntries }: ReflectionChatProps) 
   return (
     <ReflectionChatInner
       entry={entry}
-      previousEntries={previousEntries}
       initialMessages={initialMessages}
       onFinish={handleFinish}
       scrollRef={scrollRef}
@@ -95,7 +93,6 @@ export function ReflectionChat({ entry, previousEntries }: ReflectionChatProps) 
 
 interface ReflectionChatInnerProps {
   entry: JournalEntry;
-  previousEntries?: JournalEntry[];
   initialMessages: ChatMessage[];
   onFinish: (userMsg: ChatMessage, assistantMsg: ChatMessage) => void;
   scrollRef: React.RefObject<HTMLDivElement | null>;
@@ -103,7 +100,6 @@ interface ReflectionChatInnerProps {
 
 function ReflectionChatInner({
   entry,
-  previousEntries,
   initialMessages,
   onFinish,
   scrollRef,
@@ -115,11 +111,6 @@ function ReflectionChatInner({
     api: "/api/reflect",
     body: {
       currentEntry: entry.content,
-      previousEntries: previousEntries?.map((e) => ({
-        content: e.content,
-        createdAt: e.createdAt,
-        mood: e.mood,
-      })),
     },
     initialMessages,
     onFinish,

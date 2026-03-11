@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { MoodChart } from "@/components/insights/mood-chart";
 import { TagCloud } from "@/components/insights/tag-cloud";
 import { StatsCards } from "@/components/insights/stats-cards";
+import { MoodTrendCard } from "@/components/insights/mood-trend-card";
+import { MonthlySummary } from "@/components/insights/monthly-summary";
 import { Button } from "@/components/ui/button";
 import Markdown from "react-markdown";
 import type { JournalEntry } from "@/types";
@@ -79,7 +81,8 @@ export default function InsightsPage() {
         {/* Stats */}
         <StatsCards entries={entries} />
 
-        {/* Charts row */}
+        {/* Mood trend + Charts */}
+        <MoodTrendCard />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <MoodChart entries={entries} />
           <TagCloud entries={entries} />
@@ -119,6 +122,11 @@ export default function InsightsPage() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Monthly summary */}
+        <div className="animate-fade-up">
+          <MonthlySummary />
         </div>
       </div>
     </div>

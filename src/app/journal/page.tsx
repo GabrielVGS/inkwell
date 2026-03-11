@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { EntryEditor } from "@/components/journal/entry-editor";
 import { EntryList } from "@/components/journal/entry-list";
 import { ReflectionChat } from "@/components/journal/reflection-chat";
+import { WritingSuggestions } from "@/components/journal/writing-suggestions";
 import type { JournalEntry, MoodAnalysis } from "@/types";
 
 export default function JournalPage() {
@@ -32,10 +33,6 @@ export default function JournalPage() {
     setEntries((prev) => [entry, ...prev]);
     setSelectedEntry(entry);
   }, []);
-
-  const previousEntries = selectedEntry
-    ? entries.slice(0, 5).filter((e) => e.id !== selectedEntry.id)
-    : [];
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] bg-background">
@@ -89,17 +86,19 @@ export default function JournalPage() {
               <ReflectionChat
                 key={selectedEntry.id}
                 entry={selectedEntry}
-                previousEntries={previousEntries}
               />
             ) : (
-              <div className="flex flex-col items-center justify-center h-[500px] border border-dashed border-border/40 rounded-lg">
-                <div className="text-center px-8 space-y-3">
-                  <div className="mx-auto w-8 h-px bg-muted-foreground/20" />
-                  <p className="text-sm text-muted-foreground italic">
-                    Escreva uma entrada e salve para iniciar a reflexao com IA
-                  </p>
-                  <div className="mx-auto w-8 h-px bg-muted-foreground/20" />
+              <div className="space-y-6">
+                <div className="flex flex-col items-center justify-center h-[200px] border border-dashed border-border/40 rounded-lg">
+                  <div className="text-center px-8 space-y-3">
+                    <div className="mx-auto w-8 h-px bg-muted-foreground/20" />
+                    <p className="text-sm text-muted-foreground italic">
+                      Escreva uma entrada e salve para iniciar a reflexao com IA
+                    </p>
+                    <div className="mx-auto w-8 h-px bg-muted-foreground/20" />
+                  </div>
                 </div>
+                <WritingSuggestions onSelect={() => {}} />
               </div>
             )}
           </div>

@@ -1,20 +1,22 @@
 import { StateGraph, Annotation, MessagesAnnotation } from "@langchain/langgraph";
 import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { getReflectionModel } from "../llm";
-import { REFLECTION_SYSTEM_PROMPT, buildReflectionPrompt } from "../../prompts";
+import { buildAdaptiveSystemPrompt, buildReflectionPrompt } from "../../prompts";
 
 // State definition using LangGraph Annotation
 const ReflectionState = Annotation.Root({
   ...MessagesAnnotation.spec,
   currentEntry: Annotation<string>,
   previousEntries: Annotation<{ content: string; createdAt: string; mood: string | null }[]>,
+  moodContext: Annotation<{ avgScore: number; trend: "improving" | "declining" | "stable" } | undefined>,
 });
 
 // Node: generate reflection response
 async function reflect(state: typeof ReflectionState.State) {
   const model = getReflectionModel();
 
-  const systemMessage = new SystemMessage(REFLECTION_SYSTEM_PROMPT);
+  const systemPrompt = buildAdaptiveSystemPrompt(state.moodContext);
+  const systemMessage = new SystemMessage(systemPrompt);
 
   // Build context from previous entries if this is the first message
   const messages = [...state.messages];
@@ -41,7 +43,8 @@ export const reflectionGraph = workflow.compile();
 export async function getReflection(
   currentEntry: string,
   previousEntries: { content: string; createdAt: string; mood: string | null }[],
-  conversationHistory: { role: string; content: string }[]
+  conversationHistory: { role: string; content: string }[],
+  moodContext?: { avgScore: number; trend: "improving" | "declining" | "stable" }
 ) {
   const messages = conversationHistory.map((msg) =>
     msg.role === "user" ? new HumanMessage(msg.content) : new AIMessage(msg.content)
@@ -56,6 +59,7 @@ export async function getReflection(
     messages,
     currentEntry,
     previousEntries,
+    moodContext,
   });
 
   const lastMessage = result.messages[result.messages.length - 1];
@@ -68,10 +72,12 @@ export async function getReflection(
 export async function* streamReflection(
   currentEntry: string,
   previousEntries: { content: string; createdAt: string; mood: string | null }[],
-  conversationHistory: { role: string; content: string }[]
+  conversationHistory: { role: string; content: string }[],
+  moodContext?: { avgScore: number; trend: "improving" | "declining" | "stable" }
 ) {
   const model = getReflectionModel();
-  const systemMessage = new SystemMessage(REFLECTION_SYSTEM_PROMPT);
+  const systemPrompt = buildAdaptiveSystemPrompt(moodContext);
+  const systemMessage = new SystemMessage(systemPrompt);
 
   const messages = conversationHistory.map((msg) =>
     msg.role === "user" ? new HumanMessage(msg.content) : new AIMessage(msg.content)
@@ -81,7 +87,7 @@ export async function* streamReflection(
     messages.push(new HumanMessage(currentEntry));
   }
 
-  // Enrich first message with context
+  // Enrich first message with RAG context
   if (messages.length === 1 && previousEntries?.length > 0) {
     const contextPrompt = buildReflectionPrompt(currentEntry, previousEntries);
     messages[0] = new HumanMessage(contextPrompt);
