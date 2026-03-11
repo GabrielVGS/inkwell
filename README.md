@@ -131,6 +131,16 @@ make db-reset
 | `make db-push`   | Aplica schema no banco             |
 | `make db-studio` | Abre Drizzle Studio                |
 
+## Disclaimer
+
+Este projeto é fornecido apenas para fins educacionais e de auto-reflexao.  
+As analises e perguntas geradas pela IA nao constituem aconselhamento psicologico, medico ou terapeutico profissional.
+
+Inkwell nao substitui acompanhamento com psicologos, psiquiatras ou outros profissionais de saude mental.  
+Se voce estiver enfrentando dificuldades emocionais significativas, procure ajuda profissional qualificada.
+
+Todo o processamento de IA neste projeto é projetado para rodar localmente, mas a seguranca e privacidade dos dados dependem da configuracao e ambiente onde o sistema esta sendo executado.
+
 ## Licenca
 
 MIT

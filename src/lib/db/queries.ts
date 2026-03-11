@@ -3,6 +3,7 @@ import { entries, reflections, weeklySummaries } from "./schema";
 import { eq, desc, gte, lt, and, sql } from "drizzle-orm";
 import { generateEmbedding } from "@/lib/ai/embeddings";
 import type { JournalEntry, Reflection, WeeklySummary, MoodAnalysis } from "@/types";
+import { MOOD_TREND_DAYS, TREND_THRESHOLD, WRITING_CONTEXT_LIMIT, ENTRIES_PAGE_SIZE, INSIGHTS_ENTRIES_CAP } from "@/lib/constants";
 
 // --- Entries ---
 
@@ -19,13 +20,29 @@ function rowToEntry(row: typeof entries.$inferSelect): JournalEntry {
   };
 }
 
-export async function getEntries(userId: string): Promise<JournalEntry[]> {
+export async function getEntries(
+  userId: string,
+  options?: { limit?: number; cursor?: string; all?: boolean }
+): Promise<{ entries: JournalEntry[]; nextCursor: string | null }> {
+  const limit = options?.all ? INSIGHTS_ENTRIES_CAP : (options?.limit ?? ENTRIES_PAGE_SIZE);
+  const conditions = [eq(entries.userId, userId)];
+
+  if (options?.cursor) {
+    conditions.push(lt(entries.createdAt, new Date(options.cursor)));
+  }
+
   const rows = await db
     .select()
     .from(entries)
-    .where(eq(entries.userId, userId))
-    .orderBy(desc(entries.createdAt));
-  return rows.map(rowToEntry);
+    .where(and(...conditions))
+    .orderBy(desc(entries.createdAt))
+    .limit(limit + 1);
+
+  const hasMore = rows.length > limit;
+  const sliced = hasMore ? rows.slice(0, limit) : rows;
+  const nextCursor = hasMore ? sliced[sliced.length - 1].createdAt.toISOString() : null;
+
+  return { entries: sliced.map(rowToEntry), nextCursor };
 }
 
 export async function getEntry(id: string, userId: string): Promise<JournalEntry | undefined> {
@@ -45,7 +62,8 @@ export async function saveEntry(
   let embedding: number[] | undefined;
   try {
     embedding = await generateEmbedding(content);
-  } catch {
+  } catch (error) {
+    console.error("Embedding generation failed:", error);
     // Continue without embedding if Ollama is down
   }
 
@@ -69,8 +87,8 @@ export async function updateEntryAnalysis(
   id: string,
   userId: string,
   analysis: MoodAnalysis
-): Promise<void> {
-  await db
+): Promise<number> {
+  const result = await db
     .update(entries)
     .set({
       mood: analysis.mood,
@@ -80,10 +98,12 @@ export async function updateEntryAnalysis(
       updatedAt: new Date(),
     })
     .where(and(eq(entries.id, id), eq(entries.userId, userId)));
+  return result.count;
 }
 
-export async function deleteEntry(id: string, userId: string): Promise<void> {
-  await db.delete(entries).where(and(eq(entries.id, id), eq(entries.userId, userId)));
+export async function deleteEntry(id: string, userId: string): Promise<number> {
+  const result = await db.delete(entries).where(and(eq(entries.id, id), eq(entries.userId, userId)));
+  return result.count;
 }
 
 export async function getRecentEntries(userId: string, limit: number = 5): Promise<JournalEntry[]> {
@@ -160,6 +180,127 @@ export async function addReflection(
     .values({ entryId, role, content })
     .returning();
   return rowToReflection(row);
+}
+
+// --- Mood trends ---
+
+export function calculateTrend(
+  scores: number[]
+): { avgScore: number; trend: "improving" | "declining" | "stable" } {
+  if (scores.length === 0) {
+    return { avgScore: 0, trend: "stable" };
+  }
+
+  const avgScore = scores.reduce((sum, s) => sum + s, 0) / scores.length;
+
+  if (scores.length <= 1) {
+    return { avgScore, trend: "stable" };
+  }
+
+  // Compare first half vs second half to determine trend
+  const mid = Math.floor(scores.length / 2);
+  const firstHalf = scores.slice(0, mid || 1);
+  const secondHalf = scores.slice(mid || 1);
+  const avgFirst = firstHalf.reduce((s, v) => s + v, 0) / firstHalf.length;
+  const avgSecond = secondHalf.reduce((s, v) => s + v, 0) / secondHalf.length;
+
+  const diff = avgSecond - avgFirst;
+  const trend = diff > TREND_THRESHOLD ? "improving" : diff < -TREND_THRESHOLD ? "declining" : "stable";
+
+  return { avgScore, trend };
+}
+
+export async function getMoodTrend(
+  userId: string,
+  days: number = MOOD_TREND_DAYS
+): Promise<{ avgScore: number; trend: "improving" | "declining" | "stable"; recentMoods: { mood: string; moodScore: number; date: string }[] }> {
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+
+  const rows = await db
+    .select({
+      mood: entries.mood,
+      moodScore: entries.moodScore,
+      createdAt: entries.createdAt,
+    })
+    .from(entries)
+    .where(and(eq(entries.userId, userId), gte(entries.createdAt, since)))
+    .orderBy(entries.createdAt);
+
+  const scored = rows.filter((r) => r.moodScore !== null);
+  if (scored.length === 0) {
+    return { avgScore: 0, trend: "stable", recentMoods: [] };
+  }
+
+  const { avgScore, trend } = calculateTrend(scored.map((r) => r.moodScore!));
+
+  return {
+    avgScore,
+    trend,
+    recentMoods: scored.map((r) => ({
+      mood: r.mood ?? "indefinido",
+      moodScore: r.moodScore!,
+      date: r.createdAt.toISOString(),
+    })),
+  };
+}
+
+// --- Entries for month ---
+
+export async function getEntriesForMonth(userId: string, year: number, month: number): Promise<JournalEntry[]> {
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 1);
+  const rows = await db
+    .select()
+    .from(entries)
+    .where(and(eq(entries.userId, userId), gte(entries.createdAt, start), lt(entries.createdAt, end)))
+    .orderBy(entries.createdAt);
+  return rows.map(rowToEntry);
+}
+
+// --- Writing suggestions data ---
+
+export async function getWritingContext(userId: string): Promise<{
+  recentTags: string[];
+  daysSinceLastEntry: number;
+  totalEntries: number;
+  commonMoods: string[];
+}> {
+  const allEntries = await db
+    .select({ tags: entries.tags, mood: entries.mood, createdAt: entries.createdAt })
+    .from(entries)
+    .where(eq(entries.userId, userId))
+    .orderBy(desc(entries.createdAt))
+    .limit(WRITING_CONTEXT_LIMIT);
+
+  const totalEntries = allEntries.length;
+  const daysSinceLastEntry = allEntries.length > 0
+    ? Math.floor((Date.now() - allEntries[0].createdAt.getTime()) / (1000 * 60 * 60 * 24))
+    : 999;
+
+  // Aggregate tags from last 30 entries
+  const tagCounts = new Map<string, number>();
+  const moodCounts = new Map<string, number>();
+  for (const row of allEntries.slice(0, 30)) {
+    for (const tag of (row.tags as string[]) ?? []) {
+      tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+    }
+    if (row.mood) {
+      moodCounts.set(row.mood, (moodCounts.get(row.mood) ?? 0) + 1);
+    }
+  }
+
+  const recentTags = [...tagCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([tag]) => tag);
+
+  const commonMoods = [...moodCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([mood]) => mood);
+
+  return { recentTags, daysSinceLastEntry, totalEntries, commonMoods };
 }
 
 // --- Summaries ---

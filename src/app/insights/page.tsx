@@ -4,7 +4,10 @@ import { useState, useEffect } from "react";
 import { MoodChart } from "@/components/insights/mood-chart";
 import { TagCloud } from "@/components/insights/tag-cloud";
 import { StatsCards } from "@/components/insights/stats-cards";
+import { MoodTrendCard } from "@/components/insights/mood-trend-card";
+import { MonthlySummary } from "@/components/insights/monthly-summary";
 import { Button } from "@/components/ui/button";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import Markdown from "react-markdown";
 import type { JournalEntry } from "@/types";
 
@@ -12,11 +15,19 @@ export default function InsightsPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [summaryContent, setSummaryContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
-    fetch("/api/entries")
-      .then((res) => res.json())
-      .then(setEntries);
+    fetch("/api/entries?all=true")
+      .then((res) => {
+        if (!res.ok) throw new Error(`Failed to fetch entries: ${res.status}`);
+        return res.json();
+      })
+      .then((data) => setEntries(data.entries))
+      .catch((err) => {
+        console.error("Failed to load entries:", err);
+        setFetchError(true);
+      });
   }, []);
 
   const generateSummary = async () => {
@@ -76,13 +87,24 @@ export default function InsightsPage() {
           <div className="rule mt-3" />
         </div>
 
+        {fetchError && (
+          <p className="text-sm italic text-muted-foreground/60 text-center py-2">
+            Nao foi possivel carregar as entradas.
+          </p>
+        )}
+
         {/* Stats */}
         <StatsCards entries={entries} />
 
-        {/* Charts row */}
+        {/* Mood trend + Charts */}
+        <MoodTrendCard />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <MoodChart entries={entries} />
-          <TagCloud entries={entries} />
+          <ErrorBoundary>
+            <MoodChart entries={entries} />
+          </ErrorBoundary>
+          <ErrorBoundary>
+            <TagCloud entries={entries} />
+          </ErrorBoundary>
         </div>
 
         {/* Weekly summary */}
@@ -119,6 +141,11 @@ export default function InsightsPage() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Monthly summary */}
+        <div className="animate-fade-up">
+          <MonthlySummary />
         </div>
       </div>
     </div>

@@ -26,6 +26,7 @@ export function EntryEditor({ onSave, isLoading }: EntryEditorProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),
       });
+      if (!res.ok) throw new Error(`Failed to analyze entry: ${res.status}`);
       const moodAnalysis: MoodAnalysis = await res.json();
       setAnalysis(moodAnalysis);
       onSave(content, moodAnalysis);

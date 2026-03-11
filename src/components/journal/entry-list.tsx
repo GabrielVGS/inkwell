@@ -8,6 +8,7 @@ interface EntryListProps {
   entries: JournalEntry[];
   selectedId?: string;
   onSelect: (entry: JournalEntry) => void;
+  onLoadMore?: () => void;
 }
 
 function moodColor(score: number | null): string {
@@ -29,7 +30,7 @@ function moodWidth(score: number | null): string {
   return "w-1/5";
 }
 
-export function EntryList({ entries, selectedId, onSelect }: EntryListProps) {
+export function EntryList({ entries, selectedId, onSelect, onLoadMore }: EntryListProps) {
   if (entries.length === 0) {
     return (
       <div className="text-center py-16">
@@ -110,6 +111,15 @@ export function EntryList({ entries, selectedId, onSelect }: EntryListProps) {
           </button>
         );
       })}
+      {onLoadMore && (
+        <button
+          type="button"
+          onClick={onLoadMore}
+          className="w-full py-3 text-xs text-muted-foreground/70 hover:text-foreground transition-colors tracking-wide uppercase"
+        >
+          Carregar mais
+        </button>
+      )}
     </div>
   );
 }

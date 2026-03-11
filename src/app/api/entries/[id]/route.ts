@@ -1,6 +1,7 @@
 import { getEntry, updateEntryAnalysis, deleteEntry } from "@/lib/db/queries";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { entryUpdateSchema } from "@/lib/validations";
 
 export async function GET(
   _req: Request,
@@ -25,8 +26,13 @@ export async function PATCH(
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const { analysis } = await req.json();
-  await updateEntryAnalysis(id, session.user.id, analysis);
+  const parsed = entryUpdateSchema.safeParse(await req.json());
+  if (!parsed.success) {
+    return Response.json({ error: parsed.error.issues[0].message }, { status: 400 });
+  }
+  const { analysis } = parsed.data;
+  const count = await updateEntryAnalysis(id, session.user.id, analysis);
+  if (count === 0) return Response.json({ error: "Not found" }, { status: 404 });
   return Response.json({ ok: true });
 }
 
@@ -38,6 +44,7 @@ export async function DELETE(
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  await deleteEntry(id, session.user.id);
+  const count = await deleteEntry(id, session.user.id);
+  if (count === 0) return Response.json({ error: "Not found" }, { status: 404 });
   return Response.json({ ok: true });
 }

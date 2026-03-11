@@ -17,6 +17,7 @@ export type MoodAnalysis = z.infer<typeof MoodAnalysisSchema>;
 const AnalysisState = Annotation.Root({
   content: Annotation<string>,
   analysis: Annotation<MoodAnalysis | null>,
+  fallback: Annotation<boolean>,
 });
 
 // Node: analyze mood
@@ -55,8 +56,9 @@ Onde moodScore vai de -1.0 (muito negativo) a 1.0 (muito positivo) e energyLevel
       tags: Array.isArray(parsed.tags) ? parsed.tags.map(String).slice(0, 5) : [],
     });
 
-    return { analysis };
-  } catch {
+    return { analysis, fallback: false };
+  } catch (error) {
+    console.error("Mood analysis JSON parsing failed:", error);
     return {
       analysis: {
         mood: "indefinido",
@@ -64,6 +66,7 @@ Onde moodScore vai de -1.0 (muito negativo) a 1.0 (muito positivo) e energyLevel
         energyLevel: 0.5,
         tags: [],
       },
+      fallback: true,
     };
   }
 }
@@ -77,7 +80,7 @@ const workflow = new StateGraph(AnalysisState)
 export const analysisGraph = workflow.compile();
 
 // Helper
-export async function analyzeEntry(content: string): Promise<MoodAnalysis> {
-  const result = await analysisGraph.invoke({ content, analysis: null });
-  return result.analysis!;
+export async function analyzeEntry(content: string): Promise<MoodAnalysis & { fallback?: boolean }> {
+  const result = await analysisGraph.invoke({ content, analysis: null, fallback: false });
+  return { ...result.analysis!, fallback: result.fallback || undefined };
 }

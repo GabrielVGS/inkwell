@@ -9,7 +9,6 @@ import type { JournalEntry } from "@/types";
 
 interface ReflectionChatProps {
   entry: JournalEntry;
-  previousEntries?: JournalEntry[];
 }
 
 interface ChatMessage {
@@ -18,7 +17,7 @@ interface ChatMessage {
   content: string;
 }
 
-export function ReflectionChat({ entry, previousEntries }: ReflectionChatProps) {
+export function ReflectionChat({ entry }: ReflectionChatProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [initialMessages, setInitialMessages] = useState<ChatMessage[] | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -28,6 +27,7 @@ export function ReflectionChat({ entry, previousEntries }: ReflectionChatProps) 
     async function load() {
       try {
         const res = await fetch(`/api/reflections/${entry.id}`);
+        if (!res.ok) throw new Error(`Failed to fetch reflections: ${res.status}`);
         const reflections = await res.json();
         if (cancelled) return;
 
@@ -69,7 +69,7 @@ export function ReflectionChat({ entry, previousEntries }: ReflectionChatProps) 
   if (!loaded || initialMessages === null) {
     return (
       <div className="flex flex-col h-[500px] rounded-lg border border-border/60 items-center justify-center">
-        <div className="flex gap-1">
+        <div className="flex gap-1" role="status" aria-label="Carregando...">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
@@ -85,7 +85,6 @@ export function ReflectionChat({ entry, previousEntries }: ReflectionChatProps) 
   return (
     <ReflectionChatInner
       entry={entry}
-      previousEntries={previousEntries}
       initialMessages={initialMessages}
       onFinish={handleFinish}
       scrollRef={scrollRef}
@@ -95,7 +94,6 @@ export function ReflectionChat({ entry, previousEntries }: ReflectionChatProps) 
 
 interface ReflectionChatInnerProps {
   entry: JournalEntry;
-  previousEntries?: JournalEntry[];
   initialMessages: ChatMessage[];
   onFinish: (userMsg: ChatMessage, assistantMsg: ChatMessage) => void;
   scrollRef: React.RefObject<HTMLDivElement | null>;
@@ -103,7 +101,6 @@ interface ReflectionChatInnerProps {
 
 function ReflectionChatInner({
   entry,
-  previousEntries,
   initialMessages,
   onFinish,
   scrollRef,
@@ -115,11 +112,6 @@ function ReflectionChatInner({
     api: "/api/reflect",
     body: {
       currentEntry: entry.content,
-      previousEntries: previousEntries?.map((e) => ({
-        content: e.content,
-        createdAt: e.createdAt,
-        mood: e.mood,
-      })),
     },
     initialMessages,
     onFinish,
@@ -154,7 +146,7 @@ function ReflectionChatInner({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-5" ref={scrollRef}>
+      <div className="flex-1 overflow-y-auto px-5" ref={scrollRef} aria-live="polite">
         <div className="py-4 space-y-4">
           {displayMessages.map((message) => (
             <div

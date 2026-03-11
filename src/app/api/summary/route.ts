@@ -1,6 +1,7 @@
 import { streamWeeklySummary } from "@/lib/ai/graphs/summary-graph";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { createSSEResponse } from "@/lib/utils/sse";
 
 export async function POST(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -12,30 +13,5 @@ export async function POST(req: Request) {
     return Response.json({ error: "No entries provided" }, { status: 400 });
   }
 
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    async start(controller) {
-      try {
-        for await (const chunk of streamWeeklySummary(entries)) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`));
-        }
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        controller.close();
-      } catch (error) {
-        console.error("Summary stream error:", error);
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ error: "Erro ao gerar resumo" })}\n\n`)
-        );
-        controller.close();
-      }
-    },
-  });
-
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-    },
-  });
+  return createSSEResponse(streamWeeklySummary(entries), "Summary generation error");
 }
