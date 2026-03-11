@@ -184,6 +184,32 @@ export async function addReflection(
 
 // --- Mood trends ---
 
+export function calculateTrend(
+  scores: number[]
+): { avgScore: number; trend: "improving" | "declining" | "stable" } {
+  if (scores.length === 0) {
+    return { avgScore: 0, trend: "stable" };
+  }
+
+  const avgScore = scores.reduce((sum, s) => sum + s, 0) / scores.length;
+
+  if (scores.length <= 1) {
+    return { avgScore, trend: "stable" };
+  }
+
+  // Compare first half vs second half to determine trend
+  const mid = Math.floor(scores.length / 2);
+  const firstHalf = scores.slice(0, mid || 1);
+  const secondHalf = scores.slice(mid || 1);
+  const avgFirst = firstHalf.reduce((s, v) => s + v, 0) / firstHalf.length;
+  const avgSecond = secondHalf.reduce((s, v) => s + v, 0) / secondHalf.length;
+
+  const diff = avgSecond - avgFirst;
+  const trend = diff > TREND_THRESHOLD ? "improving" : diff < -TREND_THRESHOLD ? "declining" : "stable";
+
+  return { avgScore, trend };
+}
+
 export async function getMoodTrend(
   userId: string,
   days: number = MOOD_TREND_DAYS
@@ -206,17 +232,7 @@ export async function getMoodTrend(
     return { avgScore: 0, trend: "stable", recentMoods: [] };
   }
 
-  const avgScore = scored.reduce((sum, r) => sum + r.moodScore!, 0) / scored.length;
-
-  // Compare first half vs second half to determine trend
-  const mid = Math.floor(scored.length / 2);
-  const firstHalf = scored.slice(0, mid || 1);
-  const secondHalf = scored.slice(mid || 1);
-  const avgFirst = firstHalf.reduce((s, r) => s + r.moodScore!, 0) / firstHalf.length;
-  const avgSecond = secondHalf.reduce((s, r) => s + r.moodScore!, 0) / secondHalf.length;
-
-  const diff = avgSecond - avgFirst;
-  const trend = diff > TREND_THRESHOLD ? "improving" : diff < -TREND_THRESHOLD ? "declining" : "stable";
+  const { avgScore, trend } = calculateTrend(scored.map((r) => r.moodScore!));
 
   return {
     avgScore,
